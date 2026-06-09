@@ -1,0 +1,3798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>鹭味足迹 - 厦门美食记忆地图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --ink: #18202b;
+      --muted: #6d7786;
+      --soft: #f6f2eb;
+      --paper: #fffaf3;
+      --panel: rgba(255, 255, 255, 0.88);
+      --line: rgba(24, 32, 43, 0.11);
+      --blue: #2d6f88;
+      --blue-dark: #17495c;
+      --orange: #f08b43;
+      --red: #c84f45;
+      --green: #3c8a69;
+      --amber: #f5b84f;
+      --shadow: 0 24px 70px rgba(38, 49, 67, 0.14);
+      --soft-shadow: 0 16px 36px rgba(38, 49, 67, 0.1);
+      --radius: 18px;
+      --sidebar: 440px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background: #eef4f4;
+      font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      user-select: none;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 3px solid rgba(45, 111, 136, 0.28);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      background:
+        radial-gradient(circle at 18% 14%, rgba(240, 139, 67, 0.15), transparent 28%),
+        radial-gradient(circle at 85% 18%, rgba(45, 111, 136, 0.16), transparent 30%),
+        linear-gradient(135deg, #f6f2eb 0%, #eef4f4 44%, #f8eee5 100%);
+    }
+
+    .sidebar-wrap {
+      position: relative;
+      width: var(--sidebar);
+      min-width: var(--sidebar);
+      height: 100%;
+      transition: width 240ms ease, min-width 240ms ease;
+      z-index: 20;
+    }
+
+    .sidebar-wrap.collapsed {
+      width: 0;
+      min-width: 0;
+    }
+
+    .sidebar {
+      width: var(--sidebar);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: rgba(255, 250, 243, 0.94);
+      border-right: 1px solid rgba(24, 32, 43, 0.09);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      transition: transform 240ms ease;
+    }
+
+    .sidebar-wrap.collapsed .sidebar {
+      transform: translateX(calc(-1 * var(--sidebar)));
+    }
+
+    .sidebar-header {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255, 250, 243, 0.96), rgba(248, 238, 229, 0.92)),
+        repeating-linear-gradient(45deg, rgba(45, 111, 136, 0.06) 0 1px, transparent 1px 12px);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 900;
+    }
+
+    .brand-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .stat-badge {
+      min-width: 76px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+      text-align: center;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .stat-badge strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--blue-dark);
+    }
+
+    .stat-badge span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .layer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 10px 12px;
+      border: 1px solid rgba(45, 111, 136, 0.13);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .layer-row label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--red);
+      box-shadow: 0 0 0 7px rgba(200, 79, 69, 0.14);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-flex;
+      width: 46px;
+      height: 26px;
+      align-items: center;
+    }
+
+    .switch input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .switch span {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      background: #d7d6cf;
+      transition: background 180ms ease;
+    }
+
+    .switch span::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(24, 32, 43, 0.22);
+      transition: transform 180ms ease;
+    }
+
+    .switch input:checked + span {
+      background: var(--blue);
+    }
+
+    .switch input:checked + span::after {
+      transform: translateX(20px);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 40px;
+      padding: 8px 9px;
+      border-radius: 14px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 900;
+      transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .tab-btn:hover {
+      background: rgba(45, 111, 136, 0.08);
+      color: var(--blue-dark);
+    }
+
+    .tab-btn:active {
+      transform: scale(0.98);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      box-shadow: 0 10px 24px rgba(45, 111, 136, 0.22);
+    }
+
+    .content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px 18px 26px;
+    }
+
+    .content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 999px;
+      background: rgba(24, 32, 43, 0.2);
+      background-clip: content-box;
+    }
+
+    .panel {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 10px 30px rgba(38, 49, 67, 0.07);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .section-title h2,
+    .section-title h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .section-title p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .field-label {
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .input,
+    .textarea,
+    .select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid rgba(24, 32, 43, 0.12);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--ink);
+      padding: 11px 13px;
+      font-size: 14px;
+      transition: border 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .textarea {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      border-color: rgba(45, 111, 136, 0.7);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(45, 111, 136, 0.12);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 10px 13px;
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(24, 32, 43, 0.12);
+      font-size: 13px;
+      font-weight: 900;
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease, border 160ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(38, 49, 67, 0.1);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn.primary {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      box-shadow: 0 14px 28px rgba(45, 111, 136, 0.22);
+    }
+
+    .btn.accent {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      box-shadow: 0 14px 28px rgba(240, 139, 67, 0.22);
+    }
+
+    .btn.danger {
+      color: var(--red);
+      background: rgba(200, 79, 69, 0.08);
+      border-color: rgba(200, 79, 69, 0.18);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .btn.small {
+      min-height: 34px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.54;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .segment {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .segment button {
+      min-height: 42px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+      transition: all 160ms ease;
+    }
+
+    .segment button.active {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      box-shadow: 0 10px 24px rgba(45, 111, 136, 0.18);
+    }
+
+    .segment button.active.personal {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--red), #b83b41);
+    }
+
+    .segment button.active.recommend {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    }
+
+    .stars {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 54px;
+      padding: 10px;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .star-btn {
+      color: #d3d0c7;
+      background: transparent;
+      font-size: 23px;
+      transition: color 150ms ease, transform 150ms ease;
+    }
+
+    .star-btn.active {
+      color: var(--amber);
+    }
+
+    .star-btn:hover {
+      transform: scale(1.13);
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag-chip {
+      min-height: 32px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      transition: all 150ms ease;
+    }
+
+    .tag-chip:hover {
+      color: var(--blue-dark);
+      border-color: rgba(45, 111, 136, 0.28);
+    }
+
+    .tag-chip.active {
+      color: #fff;
+      border-color: transparent;
+      background: var(--blue);
+      box-shadow: 0 8px 18px rgba(45, 111, 136, 0.2);
+    }
+
+    .lock-box {
+      display: none;
+      gap: 9px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border: 1px solid rgba(60, 138, 105, 0.22);
+      border-radius: 14px;
+      background: rgba(60, 138, 105, 0.09);
+      color: #24624a;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .lock-box.show {
+      display: flex;
+    }
+
+    .dropzone {
+      position: relative;
+      min-height: 138px;
+      display: grid;
+      place-items: center;
+      border: 2px dashed rgba(45, 111, 136, 0.22);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.52);
+      text-align: center;
+      overflow: hidden;
+      transition: background 160ms ease, border 160ms ease;
+    }
+
+    .dropzone:hover,
+    .dropzone.dragging {
+      border-color: rgba(240, 139, 67, 0.68);
+      background: rgba(240, 139, 67, 0.08);
+    }
+
+    .dropzone input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .photo-preview-grid {
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .photo-preview-grid.show {
+      display: grid;
+    }
+
+    .photo-preview-card {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 10px 22px rgba(38, 49, 67, 0.08);
+    }
+
+    .photo-preview-card img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .photo-remove-btn {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(24, 32, 43, 0.72);
+      box-shadow: 0 6px 14px rgba(24, 32, 43, 0.2);
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .photo-remove-btn:hover {
+      transform: scale(1.06);
+      background: rgba(200, 79, 69, 0.9);
+    }
+
+    .photo-count-badge {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(24, 32, 43, 0.7);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .map-area {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #dfe9ea;
+    }
+
+    #map-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .fallback-map {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(45, 111, 136, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(45, 111, 136, 0.08) 1px, transparent 1px),
+        radial-gradient(circle at 55% 45%, rgba(240, 139, 67, 0.22), transparent 18%),
+        linear-gradient(135deg, #e8f1ef, #f7eadc);
+      background-size: 52px 52px, 52px 52px, auto, auto;
+    }
+
+    .fallback-map::before {
+      content: "";
+      position: absolute;
+      inset: -80px;
+      background:
+        linear-gradient(115deg, transparent 18%, rgba(45, 111, 136, 0.2) 18% 19%, transparent 19% 100%),
+        linear-gradient(28deg, transparent 42%, rgba(200, 79, 69, 0.14) 42% 43.5%, transparent 43.5% 100%),
+        linear-gradient(150deg, transparent 63%, rgba(60, 138, 105, 0.18) 63% 64.5%, transparent 64.5% 100%);
+      transform: rotate(-4deg);
+    }
+
+    .fallback-label {
+      position: absolute;
+      left: 24px;
+      top: 22px;
+      z-index: 2;
+      max-width: 320px;
+      padding: 14px 16px;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      border-radius: 18px;
+      background: rgba(255, 250, 243, 0.85);
+      box-shadow: var(--soft-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .fallback-label strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--blue-dark);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .fallback-label span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .fallback-marker,
+    .fallback-user,
+    .fallback-temp {
+      position: absolute;
+      z-index: 6;
+      transform: translate(-50%, -100%);
+      display: grid;
+      place-items: center;
+      border: 2px solid #fff;
+      border-radius: 999px 999px 999px 5px;
+      box-shadow: 0 12px 22px rgba(24, 32, 43, 0.24);
+      rotate: -45deg;
+      transition: transform 160ms ease;
+    }
+
+    .fallback-marker:hover,
+    .fallback-user:hover,
+    .fallback-temp:hover {
+      transform: translate(-50%, -100%) scale(1.08);
+    }
+
+    .fallback-marker span,
+    .fallback-user span,
+    .fallback-temp span {
+      rotate: 45deg;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .fallback-marker {
+      width: 34px;
+      height: 34px;
+      background: var(--red);
+    }
+
+    .fallback-marker.recommend {
+      background: var(--blue);
+    }
+
+    .fallback-user {
+      width: 36px;
+      height: 36px;
+      background: var(--green);
+    }
+
+    .fallback-temp {
+      width: 34px;
+      height: 34px;
+      background: var(--orange);
+    }
+
+    .fallback-line {
+      position: absolute;
+      z-index: 4;
+      height: 3px;
+      transform-origin: left center;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--orange), var(--red));
+      box-shadow: 0 7px 16px rgba(200, 79, 69, 0.18);
+    }
+
+    .map-topbar {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      top: 20px;
+      z-index: 10;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .map-title-card {
+      max-width: 440px;
+      padding: 15px 18px;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      border-radius: 20px;
+      background: rgba(255, 250, 243, 0.82);
+      box-shadow: var(--soft-shadow);
+      backdrop-filter: blur(14px);
+      pointer-events: auto;
+    }
+
+    .map-title-card h2 {
+      margin: 0;
+      color: var(--blue-dark);
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .map-title-card p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .map-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 9px;
+      pointer-events: auto;
+    }
+
+    .map-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 28px;
+      z-index: 12;
+      width: min(460px, calc(100% - 48px));
+      padding: 12px 15px;
+      border: 1px solid rgba(240, 139, 67, 0.28);
+      border-radius: 16px;
+      background: rgba(255, 250, 243, 0.9);
+      color: var(--ink);
+      box-shadow: var(--soft-shadow);
+      transform: translateX(-50%);
+      backdrop-filter: blur(12px);
+      font-size: 13px;
+      font-weight: 800;
+      display: none;
+    }
+
+    .map-hint.show {
+      display: block;
+    }
+
+    .collapse-btn {
+      position: absolute;
+      top: 50%;
+      right: -24px;
+      z-index: 30;
+      width: 24px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      border-left: 0;
+      border-radius: 0 12px 12px 0;
+      background: rgba(255, 250, 243, 0.9);
+      color: var(--blue-dark);
+      box-shadow: 5px 0 12px rgba(38, 49, 67, 0.06);
+      transform: translateY(-50%);
+      transition: color 160ms ease, background 160ms ease, width 160ms ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .collapse-btn:hover {
+      width: 28px;
+      color: var(--red);
+      background: rgba(255, 250, 243, 0.98);
+    }
+
+    .collapse-btn:active {
+      width: 24px;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .food-card,
+    .route-card,
+    .recommend-card {
+      padding: 14px;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 12px 30px rgba(38, 49, 67, 0.08);
+      transition: transform 160ms ease, box-shadow 160ms ease, border 160ms ease;
+    }
+
+    .food-card:hover,
+    .route-card:hover,
+    .recommend-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 111, 136, 0.24);
+      box-shadow: 0 18px 38px rgba(38, 49, 67, 0.12);
+    }
+
+    .food-media {
+      width: 100%;
+      height: 142px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(45, 111, 136, 0.12), rgba(240, 139, 67, 0.12)),
+        repeating-linear-gradient(45deg, rgba(24, 32, 43, 0.05) 0 1px, transparent 1px 10px);
+    }
+
+    .food-media img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-head h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .badge.personal {
+      color: #9c302f;
+      background: rgba(200, 79, 69, 0.11);
+    }
+
+    .badge.recommend {
+      color: var(--blue-dark);
+      background: rgba(45, 111, 136, 0.12);
+    }
+
+    .comment {
+      margin: 10px 0 0;
+      color: #42505f;
+      background: rgba(246, 242, 235, 0.82);
+      border: 1px solid rgba(24, 32, 43, 0.08);
+      border-radius: 14px;
+      padding: 10px 11px;
+      font-size: 13px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .empty-state {
+      padding: 26px 18px;
+      text-align: center;
+      border: 1px dashed rgba(45, 111, 136, 0.28);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.56);
+    }
+
+    .empty-state strong {
+      display: block;
+      color: var(--blue-dark);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .empty-state span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 92px;
+      padding: 13px;
+      border: 1px solid rgba(24, 32, 43, 0.1);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 7px;
+      color: var(--blue-dark);
+      font-size: 22px;
+      line-height: 1.1;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 82px 1fr 34px;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .bar-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(24, 32, 43, 0.08);
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--orange));
+    }
+
+    .ratio-ring {
+      width: 128px;
+      height: 128px;
+      margin: 4px auto 12px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: conic-gradient(var(--red) 0deg, var(--red) var(--personal-deg, 180deg), var(--blue) var(--personal-deg, 180deg), var(--blue) 360deg);
+      box-shadow: inset 0 0 0 18px rgba(255, 250, 243, 0.96);
+    }
+
+    .ratio-ring strong {
+      color: var(--blue-dark);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .timeline {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 120px;
+      padding: 12px 8px 6px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid rgba(24, 32, 43, 0.08);
+    }
+
+    .timeline-col {
+      flex: 1;
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      align-content: end;
+      gap: 6px;
+      height: 100%;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .timeline-bar {
+      width: 100%;
+      max-width: 22px;
+      min-height: 3px;
+      border-radius: 999px 999px 4px 4px;
+      background: linear-gradient(180deg, var(--orange), var(--red));
+    }
+
+    .persona-card,
+    .share-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      border-radius: 24px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(23, 73, 92, 0.96), rgba(45, 111, 136, 0.82)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 13px);
+      box-shadow: 0 22px 60px rgba(23, 73, 92, 0.22);
+    }
+
+    .persona-card::after,
+    .share-card::after {
+      content: "";
+      position: absolute;
+      right: -58px;
+      top: -70px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+    }
+
+    .persona-card h3,
+    .share-card h3 {
+      position: relative;
+      margin: 0 0 10px;
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .persona-card p,
+    .share-card p {
+      position: relative;
+      margin: 8px 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .route-picker {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .route-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid rgba(24, 32, 43, 0.08);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.65);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .route-option input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 22px;
+      z-index: 1000;
+      transform: translate(-50%, -14px);
+      min-width: 260px;
+      max-width: min(520px, calc(100vw - 28px));
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .toast-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(24, 32, 43, 0.12);
+      border-radius: 16px;
+      background: rgba(255, 250, 243, 0.96);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .toast.success .toast-inner i {
+      color: var(--green);
+    }
+
+    .toast.error .toast-inner i {
+      color: var(--red);
+    }
+
+    .toast.info .toast-inner i {
+      color: var(--blue);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(24, 32, 43, 0.36);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(430px, 100%);
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .modal h3 {
+      margin: 0;
+      color: var(--blue-dark);
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .modal p {
+      margin: 10px 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-line;
+    }
+
+    .file-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 980px) {
+      html,
+      body {
+        overflow: auto;
+      }
+
+      .app-shell {
+        display: grid;
+        grid-template-rows: 44vh minmax(0, 56vh);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .map-area {
+        grid-row: 1;
+        min-height: 320px;
+        height: 44vh;
+      }
+
+      .sidebar-wrap {
+        grid-row: 2;
+        width: 100%;
+        min-width: 0;
+        height: 56vh;
+        border-radius: 24px 24px 0 0;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: 0;
+        border-top: 1px solid rgba(24, 32, 43, 0.1);
+      }
+
+      .sidebar-wrap.collapsed {
+        width: 100%;
+        height: 72px;
+        min-width: 0;
+      }
+
+      .sidebar-wrap.collapsed .sidebar {
+        transform: translateY(calc(100% - 72px));
+      }
+
+      .collapse-btn {
+        top: -18px;
+        right: 18px;
+        width: 54px;
+        height: 34px;
+        border: 1px solid rgba(24, 32, 43, 0.1);
+        border-radius: 16px 16px 0 0;
+        transform: none;
+      }
+
+      .tabs {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 5px;
+        padding: 9px;
+      }
+
+      .tab-btn {
+        min-height: 46px;
+        flex-direction: column;
+        gap: 3px;
+        padding: 6px 4px;
+        font-size: 11px;
+      }
+
+      .sidebar-header {
+        padding: 16px 16px 12px;
+      }
+
+      .brand-title {
+        font-size: 23px;
+      }
+
+      .content {
+        padding: 14px 14px 22px;
+      }
+
+      .map-topbar {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+      }
+
+      .map-title-card {
+        display: none;
+      }
+
+      .map-toolbar {
+        width: 100%;
+      }
+
+      .map-toolbar .btn {
+        min-height: 38px;
+        padding: 9px 10px;
+        font-size: 12px;
+      }
+
+      .fallback-label {
+        left: 12px;
+        top: 66px;
+        max-width: calc(100% - 24px);
+      }
+
+      .input-row,
+      .file-actions,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .tabs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .brand-row {
+        align-items: center;
+      }
+
+      .brand-subtitle {
+        font-size: 12px;
+      }
+
+      .stat-badge {
+        min-width: 64px;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .button-row .btn,
+      .map-toolbar .btn {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div id="sidebar-wrap" class="sidebar-wrap">
+      <aside class="sidebar">
+        <header class="sidebar-header">
+          <div class="brand-row">
+            <div>
+              <h1 class="brand-title">鹭味足迹</h1>
+              <p class="brand-subtitle">把每一顿饭，标记成一段厦门记忆。</p>
+            </div>
+            <div class="stat-badge" aria-label="已打卡数量">
+              <strong id="stat-count">0</strong>
+              <span>已打卡</span>
+            </div>
+          </div>
+          <div class="layer-row">
+            <label for="footprint-toggle"><span class="pulse-dot"></span>在地图上显示足迹</label>
+            <label class="switch">
+              <input id="footprint-toggle" type="checkbox" checked />
+              <span></span>
+            </label>
+          </div>
+        </header>
+
+        <nav class="tabs" aria-label="主要功能">
+          <button class="tab-btn active" data-tab="add"><i class="fa-solid fa-plus"></i><span>记录</span></button>
+          <button class="tab-btn" data-tab="list"><i class="fa-solid fa-map-location-dot"></i><span>足迹</span></button>
+          <button class="tab-btn" data-tab="recommend"><i class="fa-solid fa-utensils"></i><span>推荐</span></button>
+          <button class="tab-btn" data-tab="routes"><i class="fa-solid fa-route"></i><span>路线</span></button>
+          <button class="tab-btn" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i><span>数据</span></button>
+          <button class="tab-btn" data-tab="share"><i class="fa-solid fa-share-nodes"></i><span>分享</span></button>
+        </nav>
+
+        <main class="content" id="sidebar-content">
+          <section id="tab-add" class="tab-panel active">
+            <form id="food-form" class="stack" autocomplete="off">
+              <div id="editing-banner" class="panel hidden">
+                <div class="section-title">
+                  <div>
+                    <h2>正在编辑足迹</h2>
+                    <p>保存后会同步更新列表、地图点位和本地数据。</p>
+                  </div>
+                </div>
+                <button type="button" id="cancel-edit-btn" class="btn ghost small"><i class="fa-solid fa-xmark"></i>取消编辑</button>
+              </div>
+
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>记录这一顿</h2>
+                    <p>先从联想结果、地图选点或当前位置锁定坐标，再写下味道。</p>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="shop-input">店铺名称</label>
+                  <input id="shop-input" class="input" type="text" maxlength="60" required placeholder="输入店名，可从高德联想中选择" />
+                  <div class="button-row">
+                    <button type="button" id="select-on-map-btn" class="btn small"><i class="fa-solid fa-location-dot"></i>在地图上选择位置</button>
+                    <button type="button" id="locate-me-inline-btn" class="btn small"><i class="fa-solid fa-crosshairs"></i>定位到我</button>
+                    <button type="button" id="use-current-location-btn" class="btn small" disabled><i class="fa-solid fa-person-walking"></i>用当前位置新建打卡</button>
+                  </div>
+                  <div id="coords-lock-indicator" class="lock-box">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                      <div id="locked-title">已锁定位置</div>
+                      <div id="locked-coords-text">--</div>
+                    </div>
+                    <button type="button" id="clear-lock-btn" class="btn ghost small" aria-label="清除锁定"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <span class="field-label">足迹类型</span>
+                  <div class="segment">
+                    <button type="button" id="type-personal-btn" class="active personal"><i class="fa-solid fa-heart"></i>个人打卡</button>
+                    <button type="button" id="type-recommend-btn" class="recommend"><i class="fa-solid fa-star"></i>主题推荐</button>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="section-title">
+                    <div>
+                      <h3>美味评级</h3>
+                      <p id="rating-text">5 星，值得专程来吃</p>
+                    </div>
+                  </div>
+                  <div id="star-container" class="stars" aria-label="美味评级"></div>
+                </div>
+
+                <div class="input-row">
+                  <div class="field">
+                    <label for="price-input">人均价格（元）</label>
+                    <input id="price-input" class="input" type="number" min="1" max="9999" placeholder="例如 35" />
+                  </div>
+                  <div class="field">
+                    <label for="date-input">记录日期</label>
+                    <input id="date-input" class="input" type="date" />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="section-title">
+                    <div>
+                      <h3>美食评价</h3>
+                      <p>写避坑、必点、校园记忆，最多 200 字。</p>
+                    </div>
+                    <span class="hint" id="char-count">0/200</span>
+                  </div>
+                  <textarea id="comment-input" class="textarea" maxlength="200" placeholder="比如：下课后和朋友来吃，沙茶汤底很浓，适合配炸五香。"></textarea>
+                </div>
+              </div>
+
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>美食标签</h2>
+                    <p>标签会用于筛选、推荐、路线和人格卡。</p>
+                  </div>
+                </div>
+                <div id="tag-cloud" class="tag-cloud"></div>
+                <div class="input-row">
+                  <input id="custom-tag-input" class="input" type="text" maxlength="12" placeholder="自定义标签，例如：雨天适合" />
+                  <button type="button" id="add-custom-tag-btn" class="btn"><i class="fa-solid fa-tag"></i>添加标签</button>
+                </div>
+              </div>
+
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>现场照片</h2>
+                    <p>自动压缩图片尺寸，提升加载速度。localStorage 容量有限，建议少量保存。</p>
+                  </div>
+                </div>
+                <div id="dropzone" class="dropzone">
+                  <input id="file-input" type="file" accept="image/*" multiple />
+                  <div id="dropzone-default">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; color: var(--blue);"></i>
+                    <p class="hint"><strong>点击上传或拖入多张照片</strong><br />最多保存 9 张小图，适合记录一顿饭的多个瞬间。</p>
+                  </div>
+                </div>
+                <div id="photo-preview-grid" class="photo-preview-grid" aria-label="已上传照片预览"></div>
+              </div>
+
+              <div class="button-row">
+                <button type="submit" id="submit-btn" class="btn primary"><i class="fa-solid fa-bowl-food"></i>记录这一顿</button>
+                <button type="button" id="reset-form-btn" class="btn"><i class="fa-solid fa-rotate-left"></i>清空表单</button>
+              </div>
+            </form>
+          </section>
+
+          <section id="tab-list" class="tab-panel">
+            <div class="stack">
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>我的美食足迹</h2>
+                    <p>按类型和标签筛选，点击卡片即可定位到地图。</p>
+                  </div>
+                </div>
+                <div class="segment">
+                  <button type="button" class="active" data-filter-type="all">全部</button>
+                  <button type="button" data-filter-type="personal">个人</button>
+                </div>
+                <div class="segment">
+                  <button type="button" data-filter-type="recommend">推荐</button>
+                  <button type="button" data-filter-type="none">清除筛选</button>
+                </div>
+                <div class="field">
+                  <label for="tag-filter-select">按标签筛选</label>
+                  <select id="tag-filter-select" class="select"></select>
+                </div>
+              </div>
+              <div id="list-container" class="card-list"></div>
+              <div id="empty-list" class="empty-state hidden">
+                <strong>还没有匹配的美食足迹</strong>
+                <span>先从厦大周边记录第一顿，或者换一个筛选条件看看。</span>
+              </div>
+            </div>
+          </section>
+
+          <section id="tab-recommend" class="tab-panel">
+            <div class="stack">
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>今天吃什么</h2>
+                    <p>从你的足迹里找一家适合当前场景的店。</p>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="scenario-select">当前场景</label>
+                  <select id="scenario-select" class="select">
+                    <option>一个人吃</option>
+                    <option>朋友聚餐</option>
+                    <option>情侣约会</option>
+                    <option>拍照打卡</option>
+                    <option>赶时间</option>
+                    <option>省钱吃饱</option>
+                    <option>深夜夜宵</option>
+                    <option>游客第一次来厦门</option>
+                  </select>
+                </div>
+                <div class="input-row">
+                  <div class="field">
+                    <label for="budget-select">预算</label>
+                    <select id="budget-select" class="select">
+                      <option value="30">30 元以内</option>
+                      <option value="60">30-60 元</option>
+                      <option value="100">60-100 元</option>
+                      <option value="9999">100 元以上</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="taste-select">口味 / 类型</label>
+                    <select id="taste-select" class="select">
+                      <option>小吃</option>
+                      <option>海鲜</option>
+                      <option>咖啡甜品</option>
+                      <option>夜宵</option>
+                      <option>正餐</option>
+                      <option>本地特色</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="button" id="recommend-btn" class="btn accent"><i class="fa-solid fa-wand-magic-sparkles"></i>帮我推荐一家</button>
+              </div>
+              <div id="recommend-result"></div>
+            </div>
+          </section>
+
+          <section id="tab-routes" class="tab-panel">
+            <div class="stack">
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>路线生成器</h2>
+                    <p>选择 2-5 个点，或按偏好自动生成一条城市美食路线。</p>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="route-name-input">路线名称</label>
+                  <input id="route-name-input" class="input" type="text" maxlength="40" placeholder="例如：厦大周边 50 元学生党路线" />
+                </div>
+                <div id="route-picker" class="route-picker"></div>
+                <div class="input-row">
+                  <select id="route-preset-select" class="select">
+                    <option value="budget">预算优先</option>
+                    <option value="rating">评分优先</option>
+                    <option value="xmu">厦大周边</option>
+                    <option value="bashi">八市烟火路线</option>
+                    <option value="shapowei">沙坡尾咖啡甜品路线</option>
+                    <option value="night">夜宵路线</option>
+                  </select>
+                  <button type="button" id="auto-route-btn" class="btn"><i class="fa-solid fa-bolt"></i>按偏好自动生成</button>
+                </div>
+                <div class="button-row">
+                  <button type="button" id="generate-route-btn" class="btn primary"><i class="fa-solid fa-route"></i>生成路线</button>
+                  <button type="button" id="clear-route-draft-btn" class="btn"><i class="fa-solid fa-eraser"></i>清空选择</button>
+                </div>
+              </div>
+              <div id="route-draft"></div>
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>已保存路线</h2>
+                    <p>路线会保存到本地，可随时删除或聚焦。</p>
+                  </div>
+                </div>
+                <div id="routes-container" class="card-list"></div>
+                <div id="empty-routes" class="empty-state hidden">
+                  <strong>还没有保存路线</strong>
+                  <span>先选择几个点，让鹭味足迹帮你串成一条路。</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="tab-dashboard" class="tab-panel">
+            <div class="stack">
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>个人美食数据</h2>
+                    <p>所有统计都来自本地保存的足迹。</p>
+                  </div>
+                </div>
+                <div id="stats-grid" class="stats-grid"></div>
+              </div>
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>标签分布</h2>
+                    <p>最常出现的味道关键词。</p>
+                  </div>
+                </div>
+                <div id="tag-chart" class="bar-list"></div>
+              </div>
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>类型占比</h2>
+                    <p>个人打卡和主题推荐的比例。</p>
+                  </div>
+                </div>
+                <div id="type-chart"></div>
+              </div>
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>打卡时间轴</h2>
+                    <p>最近 6 个月的美食记忆密度。</p>
+                  </div>
+                </div>
+                <div id="timeline-chart" class="timeline"></div>
+              </div>
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>数据备份</h2>
+                    <p>导出 JSON 可备份 checkins 和 routes；导入会覆盖当前数据。</p>
+                  </div>
+                </div>
+                <div class="file-actions">
+                  <button type="button" id="export-json-btn" class="btn"><i class="fa-solid fa-file-export"></i>导出 JSON</button>
+                  <button type="button" id="import-json-btn" class="btn"><i class="fa-solid fa-file-import"></i>导入 JSON</button>
+                  <button type="button" id="restore-sample-btn" class="btn"><i class="fa-solid fa-seedling"></i>恢复示例数据</button>
+                  <button type="button" id="clear-all-btn" class="btn danger"><i class="fa-solid fa-trash"></i>清空全部数据</button>
+                </div>
+                <input id="import-file-input" class="hidden" type="file" accept="application/json,.json" />
+              </div>
+            </div>
+          </section>
+
+          <section id="tab-share" class="tab-panel">
+            <div class="stack">
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>美食人格卡</h2>
+                    <p>生成一张适合截图分享的厦门美食人格。</p>
+                  </div>
+                </div>
+                <button type="button" id="generate-persona-btn" class="btn primary"><i class="fa-solid fa-id-card"></i>生成我的美食人格</button>
+                <div id="persona-card" class="persona-card hidden"></div>
+                <button type="button" id="copy-persona-btn" class="btn hidden"><i class="fa-solid fa-copy"></i>复制人格文案</button>
+              </div>
+
+              <div class="panel stack">
+                <div class="section-title">
+                  <div>
+                    <h2>分享卡片</h2>
+                    <p>生成你的本地美食地图总结，截图发给朋友一起打卡。</p>
+                  </div>
+                </div>
+                <button type="button" id="generate-share-btn" class="btn accent"><i class="fa-solid fa-image"></i>生成分享卡片</button>
+                <div id="share-card" class="share-card hidden"></div>
+                <button type="button" id="copy-share-btn" class="btn hidden"><i class="fa-solid fa-copy"></i>复制分享文案</button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </aside>
+      <button id="sidebar-toggle-btn" class="collapse-btn" title="折叠/展开控制台" aria-label="折叠或展开控制台">
+        <i id="toggle-icon" class="fa-solid fa-chevron-left"></i>
+      </button>
+    </div>
+
+    <section class="map-area" aria-label="厦门地图">
+      <div id="map-container"></div>
+      <div id="fallback-map" class="fallback-map hidden">
+        <div class="fallback-label">
+          <strong>拟态厦门地图</strong>
+          <span>真实地图加载失败或 Key 未配置时，仍可在此点击选择位置、查看足迹和路线。</span>
+        </div>
+      </div>
+      <div class="map-topbar">
+        <div class="map-toolbar">
+          <button type="button" id="map-select-btn" class="btn"><i class="fa-solid fa-location-dot"></i>地图选点</button>
+          <button type="button" id="locate-me-btn" class="btn"><i class="fa-solid fa-crosshairs"></i>定位到我</button>
+          <button type="button" id="reset-view-btn" class="btn"><i class="fa-solid fa-location-crosshairs"></i>重置厦门</button>
+        </div>
+      </div>
+      <div id="map-hint" class="map-hint">已进入地图选点模式：在地图上点击一个位置，即可锁定为新打卡坐标。</div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <div class="toast-inner">
+      <i id="toast-icon" class="fa-solid fa-circle-info"></i>
+      <span id="toast-text"></span>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal">
+      <h3 id="confirm-title">确认操作</h3>
+      <p id="confirm-message"></p>
+      <div class="button-row">
+        <button type="button" id="confirm-ok-btn" class="btn danger"><i class="fa-solid fa-check"></i>确认</button>
+        <button type="button" id="confirm-cancel-btn" class="btn"><i class="fa-solid fa-xmark"></i>取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // =========================
+    // 1. 集中配置
+    // =========================
+    const APP_CONFIG = {
+      amapKey: "7f5664d227ecf2f3fdb336485c9b581f",
+      amapSecurityCode: "1c2364a1320351f5eda28d6db3cb7915",
+      xiamenCenter: [118.11022, 24.49047],
+      xiamenBounds: {
+        minLng: 117.92,
+        maxLng: 118.36,
+        minLat: 24.34,
+        maxLat: 24.68
+      },
+      storageKey: "luwei_food_map_v2",
+      oldStorageKey: "xiamen_food_map_checkins",
+      maxPhotosPerCheckin: 9,
+      defaultTags: [
+        "沙茶面", "海鲜", "小吃", "咖啡", "甜品", "夜宵", "聚餐", "约会", "学生党",
+        "游客友好", "本地推荐", "拍照出片", "避坑", "性价比高", "厦大周边", "八市", "沙坡尾", "中山路"
+      ],
+      maxRouteStops: 5,
+      minRouteStops: 2
+    };
+
+    if (APP_CONFIG.amapSecurityCode) {
+      window._AMapSecurityConfig = { securityJsCode: APP_CONFIG.amapSecurityCode };
+    }
+
+    // =========================
+    // 2. 示例数据
+    // =========================
+    const mockData = [
+      {
+        id: "seed-1",
+        name: "阿杰五香面线糊",
+        type: "recommend",
+        rating: 5,
+        price: 23,
+        comment: "早上来一碗很稳，五香和面线糊都很有厦门味，适合第一次来八市的朋友。",
+        image: "",
+        lnglat: [118.08479, 24.45719],
+        date: "2026-05-18",
+        tags: ["小吃", "本地推荐", "八市", "性价比高"]
+      },
+      {
+        id: "seed-2",
+        name: "沙坡尾暮色咖啡",
+        type: "personal",
+        rating: 4,
+        price: 42,
+        comment: "傍晚坐在窗边能看到街巷和海风，甜品好拍，适合课后慢慢聊天。",
+        image: "",
+        lnglat: [118.08997, 24.44358],
+        date: "2026-05-28",
+        tags: ["咖啡", "甜品", "拍照出片", "沙坡尾", "约会"]
+      },
+      {
+        id: "seed-3",
+        name: "厦大后门沙茶面",
+        type: "personal",
+        rating: 5,
+        price: 18,
+        comment: "下课后最适合的一碗，汤头浓，价格友好，是学生党安全牌。",
+        image: "",
+        lnglat: [118.10642, 24.43683],
+        date: "2026-06-01",
+        tags: ["沙茶面", "学生党", "厦大周边", "性价比高"]
+      },
+      {
+        id: "seed-4",
+        name: "中山路花生汤",
+        type: "recommend",
+        rating: 4,
+        price: 16,
+        comment: "甜口刚好，适合饭后散步顺手吃，游客也很容易安排进路线。",
+        image: "",
+        lnglat: [118.08101, 24.45872],
+        date: "2026-06-03",
+        tags: ["甜品", "中山路", "游客友好", "小吃"]
+      },
+      {
+        id: "seed-5",
+        name: "深夜烧肉粽小摊",
+        type: "personal",
+        rating: 4,
+        price: 28,
+        comment: "晚上十点以后还亮着灯，热腾腾的烟火气很适合夜宵局。",
+        image: "",
+        lnglat: [118.12755, 24.47552],
+        date: "2026-06-05",
+        tags: ["夜宵", "小吃", "聚餐", "本地推荐"]
+      }
+    ];
+
+    // =========================
+    // 3. 全局状态
+    // =========================
+    const state = {
+      activeTab: "add",
+      checkins: [],
+      routes: [],
+      selectedPoi: null,
+      selectedTags: [],
+      customTags: [],
+      currentType: "personal",
+      currentRating: 5,
+      editingId: null,
+      imagesBase64: [],
+      filterType: "all",
+      filterTag: "all",
+      routeDraftIds: [],
+      recommendationIndex: 0,
+      lastRecommendationPool: [],
+      userLocation: null,
+      footprintsEnabled: true,
+      selectMode: false,
+      mapReady: false,
+      fallbackMode: false
+    };
+
+    const mapState = {
+      map: null,
+      infoWindow: null,
+      markers: [],
+      tempMarker: null,
+      userMarker: null,
+      routePolyline: null,
+      fallbackRouteLines: []
+    };
+
+    const dom = {};
+
+    // =========================
+    // 4. 工具函数
+    // =========================
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function cacheDom() {
+      [
+        "stat-count", "footprint-toggle", "sidebar-wrap", "sidebar-toggle-btn", "toggle-icon",
+        "shop-input", "select-on-map-btn", "map-select-btn", "locate-me-btn", "locate-me-inline-btn",
+        "use-current-location-btn", "reset-view-btn", "coords-lock-indicator", "locked-title",
+        "locked-coords-text", "clear-lock-btn", "type-personal-btn", "type-recommend-btn",
+        "star-container", "rating-text", "price-input", "date-input", "comment-input", "char-count",
+        "tag-cloud", "custom-tag-input", "add-custom-tag-btn", "dropzone", "dropzone-default",
+        "photo-preview-grid", "file-input", "food-form", "submit-btn", "reset-form-btn",
+        "editing-banner", "cancel-edit-btn", "list-container", "empty-list", "tag-filter-select",
+        "scenario-select", "budget-select", "taste-select", "recommend-btn", "recommend-result",
+        "route-name-input", "route-picker", "route-preset-select", "auto-route-btn", "generate-route-btn",
+        "clear-route-draft-btn", "route-draft", "routes-container", "empty-routes", "stats-grid",
+        "tag-chart", "type-chart", "timeline-chart", "export-json-btn", "import-json-btn",
+        "import-file-input", "restore-sample-btn", "clear-all-btn", "generate-persona-btn",
+        "persona-card", "copy-persona-btn", "generate-share-btn", "share-card", "copy-share-btn",
+        "map-container", "fallback-map", "map-hint", "toast", "toast-icon", "toast-text",
+        "confirm-modal", "confirm-title", "confirm-message", "confirm-ok-btn", "confirm-cancel-btn"
+      ].forEach((id) => {
+        dom[toCamel(id)] = $(id);
+      });
+    }
+
+    function toCamel(id) {
+      return id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#96;");
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return fallback;
+      return Math.min(max, Math.max(min, num));
+    }
+
+    function isValidLngLat(lnglat) {
+      return Array.isArray(lnglat)
+        && lnglat.length === 2
+        && Number.isFinite(Number(lnglat[0]))
+        && Number.isFinite(Number(lnglat[1]));
+    }
+
+    function normalizeLngLat(lnglat) {
+      if (!isValidLngLat(lnglat)) return [...APP_CONFIG.xiamenCenter];
+      return [Number(lnglat[0]), Number(lnglat[1])];
+    }
+
+    function formatLngLat(lnglat) {
+      if (!isValidLngLat(lnglat)) return "--";
+      return `${Number(lnglat[0]).toFixed(5)}, ${Number(lnglat[1]).toFixed(5)}`;
+    }
+
+    function todayString() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatPrice(value) {
+      const price = Number(value);
+      return Number.isFinite(price) && price > 0 ? `¥${Math.round(price)}` : "未填写";
+    }
+
+    function safeText(value, fallback = "未命名") {
+      const text = String(value ?? "").trim();
+      return text || fallback;
+    }
+
+    function sanitizeImageSrc(value) {
+      const text = String(value ?? "").trim();
+      if (!text) return "";
+      if (/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(text)) return text;
+      if (/^https?:\/\//i.test(text)) return text.slice(0, 2000);
+      return "";
+    }
+
+    function normalizeImages(item) {
+      const values = Array.isArray(item?.images) ? item.images : [];
+      const legacy = item?.image ? [item.image] : [];
+      return uniqueStrings([...values, ...legacy].map(sanitizeImageSrc))
+        .filter(Boolean)
+        .slice(0, APP_CONFIG.maxPhotosPerCheckin);
+    }
+
+    function getCheckinImages(item) {
+      return normalizeImages(item);
+    }
+
+    function uniqueStrings(values) {
+      return [...new Set((values || []).map((item) => String(item).trim()).filter(Boolean))];
+    }
+
+    function getAllTags() {
+      const dataTags = state.checkins.flatMap((item) => item.tags || []);
+      return uniqueStrings([...APP_CONFIG.defaultTags, ...state.customTags, ...dataTags]);
+    }
+
+    function getCheckinById(id) {
+      return state.checkins.find((item) => item.id === id) || null;
+    }
+
+    function getTagCounts(data = state.checkins) {
+      const counts = {};
+      data.forEach((item) => {
+        (item.tags || []).forEach((tag) => {
+          counts[tag] = (counts[tag] || 0) + 1;
+        });
+      });
+      return counts;
+    }
+
+    function getTopTag(data = state.checkins) {
+      const counts = getTagCounts(data);
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      return top ? top[0] : "暂无";
+    }
+
+    function createId(prefix) {
+      return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    }
+
+    function showToast(message, type = "success") {
+      const iconMap = {
+        success: "fa-circle-check",
+        error: "fa-circle-exclamation",
+        info: "fa-circle-info"
+      };
+      dom.toast.className = `toast ${type}`;
+      dom.toastIcon.className = `fa-solid ${iconMap[type] || iconMap.info}`;
+      dom.toastText.textContent = message;
+      dom.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => dom.toast.classList.remove("show"), 2800);
+    }
+
+    function askConfirm({ title = "确认操作", message = "确定继续吗？", okText = "确认", danger = true } = {}) {
+      return new Promise((resolve) => {
+        dom.confirmTitle.textContent = title;
+        dom.confirmMessage.textContent = message;
+        dom.confirmOkBtn.innerHTML = `<i class="fa-solid fa-check"></i>${escapeHtml(okText)}`;
+        dom.confirmOkBtn.className = danger ? "btn danger" : "btn primary";
+        dom.confirmModal.classList.add("show");
+
+        const cleanup = (value) => {
+          dom.confirmModal.classList.remove("show");
+          dom.confirmOkBtn.removeEventListener("click", onOk);
+          dom.confirmCancelBtn.removeEventListener("click", onCancel);
+          dom.confirmModal.removeEventListener("click", onBackdrop);
+          dom.confirmTitle.textContent = "确认操作";
+          dom.confirmMessage.textContent = "";
+          resolve(value);
+        };
+        const onOk = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+        const onBackdrop = (event) => {
+          if (event.target === dom.confirmModal) cleanup(false);
+        };
+        dom.confirmOkBtn.addEventListener("click", onOk);
+        dom.confirmCancelBtn.addEventListener("click", onCancel);
+        dom.confirmModal.addEventListener("click", onBackdrop);
+      });
+    }
+
+    async function copyText(text, successMessage) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(successMessage);
+      } catch (error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+        showToast(successMessage);
+      }
+    }
+
+    // =========================
+    // 5. 数据存储
+    // =========================
+    function normalizeCheckin(item) {
+      const images = normalizeImages(item);
+      const normalized = {
+        id: safeText(item.id, createId("checkin")),
+        name: safeText(item.name, "未命名店铺").slice(0, 60),
+        type: item.type === "recommend" ? "recommend" : "personal",
+        rating: clampNumber(item.rating, 1, 5, 5),
+        price: clampNumber(item.price, 0, 9999, 0),
+        comment: String(item.comment ?? "").slice(0, 200),
+        image: images[0] || "",
+        images,
+        lnglat: normalizeLngLat(item.lnglat),
+        date: safeText(item.date, todayString()).slice(0, 10),
+        tags: uniqueStrings(item.tags).slice(0, 18)
+      };
+      return normalized;
+    }
+
+    function normalizeRoute(route) {
+      return {
+        id: safeText(route.id, createId("route")),
+        name: safeText(route.name, "未命名路线").slice(0, 40),
+        pointIds: uniqueStrings(route.pointIds).slice(0, APP_CONFIG.maxRouteStops),
+        tags: uniqueStrings(route.tags).slice(0, 8),
+        note: String(route.note ?? "").slice(0, 160),
+        createdAt: safeText(route.createdAt, todayString()).slice(0, 10)
+      };
+    }
+
+    function loadData() {
+      try {
+        const stored = localStorage.getItem(APP_CONFIG.storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          state.checkins = Array.isArray(parsed.checkins) ? parsed.checkins.map(normalizeCheckin) : [];
+          state.routes = Array.isArray(parsed.routes) ? parsed.routes.map(normalizeRoute) : [];
+          state.customTags = uniqueStrings(parsed.customTags);
+          state.footprintsEnabled = parsed.footprintsEnabled !== false;
+          return;
+        }
+
+        const oldStored = localStorage.getItem(APP_CONFIG.oldStorageKey);
+        if (oldStored) {
+          const oldParsed = JSON.parse(oldStored);
+          state.checkins = Array.isArray(oldParsed) ? oldParsed.map(normalizeCheckin) : mockData.map(normalizeCheckin);
+          state.routes = [];
+          saveData();
+          return;
+        }
+      } catch (error) {
+        console.warn("读取本地数据失败，已使用示例数据。", error);
+      }
+
+      state.checkins = mockData.map(normalizeCheckin);
+      state.routes = [];
+      saveData();
+    }
+
+    function saveData() {
+      const payload = {
+        version: 2,
+        checkins: state.checkins,
+        routes: state.routes,
+        customTags: state.customTags,
+        footprintsEnabled: state.footprintsEnabled
+      };
+      try {
+        localStorage.setItem(APP_CONFIG.storageKey, JSON.stringify(payload));
+      } catch (error) {
+        showToast("保存失败：本地存储空间可能已满，请尝试删除部分图片或导出备份。", "error");
+      }
+    }
+
+    function exportData() {
+      const payload = {
+        product: "鹭味足迹",
+        exportedAt: new Date().toISOString(),
+        checkins: state.checkins,
+        routes: state.routes,
+        customTags: state.customTags
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `luwei-footprints-${todayString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("JSON 已导出，可用于备份或展示。");
+    }
+
+    async function importDataFile(file) {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const confirmed = await askConfirm({
+          title: "导入 JSON",
+          message: "导入会覆盖当前页面里的足迹和路线。建议先导出备份，确认继续吗？",
+          okText: "导入",
+          danger: false
+        });
+        if (!confirmed) return;
+        state.checkins = Array.isArray(parsed.checkins) ? parsed.checkins.map(normalizeCheckin) : [];
+        state.routes = Array.isArray(parsed.routes) ? parsed.routes.map(normalizeRoute) : [];
+        state.customTags = uniqueStrings(parsed.customTags);
+        state.routeDraftIds = [];
+        saveData();
+        renderAll();
+        updateMarkers();
+        showToast("导入完成，数据已恢复。");
+      } catch (error) {
+        showToast("导入失败，请确认文件是正确的 JSON 备份。", "error");
+      } finally {
+        dom.importFileInput.value = "";
+      }
+    }
+
+    // =========================
+    // 6. 地图逻辑
+    // =========================
+    function loadAmapScript() {
+      return new Promise((resolve, reject) => {
+        if (!APP_CONFIG.amapKey) {
+          reject(new Error("AMap key missing"));
+          return;
+        }
+        if (window.AMap) {
+          resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(APP_CONFIG.amapKey)}&plugin=AMap.AutoComplete`;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("AMap script failed"));
+        document.head.appendChild(script);
+      });
+    }
+
+    async function initMap() {
+      try {
+        await loadAmapScript();
+        mapState.map = new window.AMap.Map("map-container", {
+          viewMode: "2D",
+          zoom: 13,
+          center: APP_CONFIG.xiamenCenter,
+          resizeEnable: true,
+          mapStyle: "amap://styles/fresh"
+        });
+        mapState.infoWindow = new window.AMap.InfoWindow({
+          offset: new window.AMap.Pixel(0, -30),
+          closeWhenClickMap: true
+        });
+        state.mapReady = true;
+        state.fallbackMode = false;
+        dom.fallbackMap.classList.add("hidden");
+
+        mapState.map.on("click", (event) => {
+          if (state.selectMode) lockMapPoint([event.lnglat.lng, event.lnglat.lat], "地图选点");
+        });
+        mapState.map.on("rightclick", (event) => {
+          lockMapPoint([event.lnglat.lng, event.lnglat.lat], "右键选点");
+        });
+
+        initAutocomplete();
+        updateMarkers();
+      } catch (error) {
+        console.warn("高德地图加载失败，启用拟态地图。", error);
+        initFallbackMap();
+        showToast("真实地图加载失败，已启用可操作的拟态地图兜底。", "info");
+      }
+    }
+
+    function initAutocomplete() {
+      if (!window.AMap || !window.AMap.AutoComplete) return;
+      const auto = new window.AMap.AutoComplete({
+        input: "shop-input",
+        city: "厦门",
+        citylimit: false
+      });
+      auto.on("select", (event) => {
+        const poi = event.poi || {};
+        if (!poi.location) {
+          showToast("该联想结果没有坐标，请换一个结果或使用地图选点。", "error");
+          return;
+        }
+        const lnglat = [Number(poi.location.lng), Number(poi.location.lat)];
+        state.selectedPoi = {
+          name: safeText(poi.name, "高德联想位置"),
+          lnglat,
+          source: "autocomplete"
+        };
+        updateCoordsIndicator();
+        showTempMarker(lnglat);
+        if (mapState.map) mapState.map.setZoomAndCenter(16, lnglat);
+        showToast(`已选定位置：${state.selectedPoi.name}`);
+      });
+    }
+
+    function initFallbackMap() {
+      state.fallbackMode = true;
+      state.mapReady = false;
+      dom.fallbackMap.classList.remove("hidden");
+      dom.mapContainer.innerHTML = "";
+      dom.fallbackMap.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target.closest(".fallback-marker") || target.closest(".fallback-user") || target.closest(".fallback-temp")) return;
+        if (!state.selectMode) return;
+        const rect = dom.fallbackMap.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        const lng = APP_CONFIG.xiamenBounds.minLng + x * (APP_CONFIG.xiamenBounds.maxLng - APP_CONFIG.xiamenBounds.minLng);
+        const lat = APP_CONFIG.xiamenBounds.maxLat - y * (APP_CONFIG.xiamenBounds.maxLat - APP_CONFIG.xiamenBounds.minLat);
+        lockMapPoint([lng, lat], "拟态地图选点");
+      });
+      updateMarkers();
+    }
+
+    function setSelectMode(enabled) {
+      state.selectMode = enabled;
+      dom.mapHint.classList.toggle("show", enabled);
+      dom.mapSelectBtn.classList.toggle("accent", enabled);
+      dom.selectOnMapBtn.classList.toggle("accent", enabled);
+      if (enabled) {
+        showToast("已进入地图选点模式，请在地图上点击目标位置。", "info");
+      }
+    }
+
+    function lockMapPoint(lnglat, name) {
+      state.selectedPoi = {
+        name: safeText(name, "地图选点"),
+        lnglat: normalizeLngLat(lnglat),
+        source: "map"
+      };
+      updateCoordsIndicator();
+      showTempMarker(state.selectedPoi.lnglat);
+      setSelectMode(false);
+      showToast("位置已锁定，请在左侧表单补充店名和美味详情。");
+    }
+
+    function clearSelectedPoi() {
+      state.selectedPoi = null;
+      updateCoordsIndicator();
+      clearTempMarker();
+      showToast("已清除坐标锁定。请重新搜索、地图选点或定位。", "info");
+    }
+
+    function updateCoordsIndicator() {
+      const hasPoi = !!state.selectedPoi && isValidLngLat(state.selectedPoi.lnglat);
+      dom.coordsLockIndicator.classList.toggle("show", hasPoi);
+      if (hasPoi) {
+        dom.lockedTitle.textContent = `已锁定：${state.selectedPoi.name}`;
+        dom.lockedCoordsText.textContent = formatLngLat(state.selectedPoi.lnglat);
+      } else {
+        dom.lockedTitle.textContent = "未锁定位置";
+        dom.lockedCoordsText.textContent = "--";
+      }
+    }
+
+    function showTempMarker(lnglat) {
+      clearTempMarker();
+      if (state.fallbackMode) {
+        drawFallbackMarkers();
+        return;
+      }
+      if (!mapState.map || !window.AMap) return;
+      mapState.tempMarker = new window.AMap.Marker({
+        position: lnglat,
+        title: "待保存位置",
+        offset: new window.AMap.Pixel(-13, -30),
+        content: `<div style="width:28px;height:28px;border-radius:18px 18px 18px 5px;background:#f08b43;border:2px solid #fff;transform:rotate(-45deg);box-shadow:0 10px 22px rgba(0,0,0,.25);display:grid;place-items:center;"><span style="transform:rotate(45deg);color:#fff;font-weight:900;font-size:12px;">+</span></div>`
+      });
+      mapState.tempMarker.setMap(mapState.map);
+    }
+
+    function clearTempMarker() {
+      if (mapState.tempMarker && mapState.tempMarker.setMap) {
+        mapState.tempMarker.setMap(null);
+      }
+      mapState.tempMarker = null;
+      if (state.fallbackMode) drawFallbackMarkers();
+    }
+
+    function resetMapView() {
+      if (mapState.map) {
+        mapState.map.setZoomAndCenter(13, APP_CONFIG.xiamenCenter);
+      }
+      showToast("厦门全景视角已还原。");
+    }
+
+    function focusOnSpot(item) {
+      if (!item || !isValidLngLat(item.lnglat)) return;
+      state.footprintsEnabled = true;
+      dom.footprintToggle.checked = true;
+      saveData();
+      updateMarkers();
+      if (mapState.map) {
+        mapState.map.setZoomAndCenter(16, item.lnglat);
+        setTimeout(() => openFoodInfoWindow(item), 250);
+      } else {
+        openFallbackInfo(item);
+      }
+    }
+
+    function updateMarkers() {
+      if (state.fallbackMode) {
+        drawFallbackMarkers();
+        drawFallbackRoute();
+        return;
+      }
+      if (!mapState.map || !window.AMap) return;
+      mapState.markers.forEach((marker) => marker.setMap(null));
+      mapState.markers = [];
+      clearRoutePolyline();
+
+      if (state.footprintsEnabled) {
+        state.checkins.forEach((item) => {
+          const marker = new window.AMap.Marker({
+            position: item.lnglat,
+            title: item.name,
+            offset: new window.AMap.Pixel(-40, -86),
+            content: createMarkerHtml(item)
+          });
+          marker.on("click", () => openFoodInfoWindow(item));
+          marker.setMap(mapState.map);
+          mapState.markers.push(marker);
+        });
+      }
+
+      if (state.userLocation) drawUserMarker();
+      if (state.selectedPoi) showTempMarker(state.selectedPoi.lnglat);
+      drawActiveRouteOnMap();
+    }
+
+    function createMarkerHtml(item) {
+      const photos = getCheckinImages(item);
+      const color = item.type === "recommend" ? "#2d6f88" : "#c84f45";
+      const icon = item.type === "recommend" ? "★" : "♥";
+      const summary = safeText(item.comment, item.type === "recommend" ? "主题推荐" : "个人打卡").slice(0, 8);
+      return `
+        <div style="position:relative;width:80px;padding:4px 4px 5px;border:1px solid rgba(24,32,43,.14);border-radius:12px;background:rgba(255,250,243,.96);box-shadow:0 10px 24px rgba(24,32,43,.24);font-family:Inter,'Noto Sans SC',sans-serif;">
+          <div style="height:48px;overflow:hidden;border-radius:9px;background:${color};display:grid;place-items:center;">
+            ${photos.length
+              ? `<img src="${escapeAttr(photos[0])}" alt="" style="width:100%;height:100%;display:block;object-fit:cover;">`
+              : `<span style="color:#fff;font-size:17px;font-weight:900;">${icon}</span>`}
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px;min-width:0;font-size:10px;line-height:1.1;font-weight:900;">
+            <span style="flex:none;color:#d98b19;">★ ${item.rating}</span>
+            <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#566273;">${escapeHtml(summary)}</span>
+          </div>
+          <span style="position:absolute;left:50%;bottom:-7px;width:13px;height:13px;border-right:1px solid rgba(24,32,43,.14);border-bottom:1px solid rgba(24,32,43,.14);background:#fffaf3;transform:translateX(-50%) rotate(45deg);"></span>
+        </div>
+      `;
+    }
+
+    function openFoodInfoWindow(item) {
+      if (!mapState.infoWindow || !mapState.map) return;
+      const photos = getCheckinImages(item);
+      const tags = (item.tags || []).map((tag) => `<span class="badge recommend">${escapeHtml(tag)}</span>`).join("");
+      const content = `
+        <div style="width:280px;padding:14px;border-radius:18px;background:#fffaf3;border:1px solid rgba(24,32,43,.12);box-shadow:0 18px 42px rgba(24,32,43,.18);font-family:Inter,'Noto Sans SC',sans-serif;color:#18202b;">
+          ${photos.length ? `
+            <div style="display:grid;grid-template-columns:repeat(${Math.min(photos.length, 3)},minmax(0,1fr));gap:5px;margin-bottom:10px;">
+              ${photos.slice(0, 3).map((photo, index) => `
+                <div style="position:relative;height:105px;overflow:hidden;border-radius:11px;">
+                  <img src="${escapeAttr(photo)}" alt="${escapeAttr(item.name)} 照片 ${index + 1}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                  ${index === 2 && photos.length > 3 ? `<span style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(24,32,43,.54);color:#fff;font-size:14px;font-weight:900;">+${photos.length - 3}</span>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+            <strong style="font-size:16px;line-height:1.35;">${escapeHtml(item.name)}</strong>
+            <span style="white-space:nowrap;padding:4px 7px;border-radius:999px;background:${item.type === "personal" ? "rgba(200,79,69,.12)" : "rgba(45,111,136,.12)"};color:${item.type === "personal" ? "#9c302f" : "#17495c"};font-size:11px;font-weight:900;">${item.type === "personal" ? "个人" : "推荐"}</span>
+          </div>
+          <div style="margin-top:8px;color:#6d7786;font-size:12px;font-weight:800;">${"★".repeat(item.rating)}${"☆".repeat(5 - item.rating)} · ${formatPrice(item.price)} · ${escapeHtml(item.date)}</div>
+          <p style="margin:10px 0 0;padding:9px;border-radius:12px;background:#f6f2eb;color:#42505f;font-size:12px;line-height:1.55;">${escapeHtml(item.comment || "还没有留下评价。")}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${tags || '<span style="color:#6d7786;font-size:12px;">暂无标签</span>'}</div>
+        </div>
+      `;
+      mapState.infoWindow.setContent(content);
+      mapState.infoWindow.open(mapState.map, item.lnglat);
+    }
+
+    function projectToFallback(lnglat) {
+      const bounds = APP_CONFIG.xiamenBounds;
+      const lng = clampNumber(lnglat[0], bounds.minLng, bounds.maxLng, APP_CONFIG.xiamenCenter[0]);
+      const lat = clampNumber(lnglat[1], bounds.minLat, bounds.maxLat, APP_CONFIG.xiamenCenter[1]);
+      return {
+        x: ((lng - bounds.minLng) / (bounds.maxLng - bounds.minLng)) * 100,
+        y: ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * 100
+      };
+    }
+
+    function drawFallbackMarkers() {
+      if (!state.fallbackMode) return;
+      dom.fallbackMap.querySelectorAll(".fallback-marker,.fallback-user,.fallback-temp").forEach((el) => el.remove());
+      if (state.footprintsEnabled) {
+        state.checkins.forEach((item) => {
+          const point = projectToFallback(item.lnglat);
+          const marker = document.createElement("button");
+          marker.type = "button";
+          marker.className = `fallback-marker ${item.type === "recommend" ? "recommend" : ""}`;
+          marker.style.left = `${point.x}%`;
+          marker.style.top = `${point.y}%`;
+          marker.title = item.name;
+          marker.innerHTML = `<span>${item.type === "recommend" ? "★" : "♥"}</span>`;
+          marker.addEventListener("click", () => openFallbackInfo(item));
+          dom.fallbackMap.appendChild(marker);
+        });
+      }
+      if (state.userLocation) {
+        const point = projectToFallback(state.userLocation.lnglat);
+        const marker = document.createElement("button");
+        marker.type = "button";
+        marker.className = "fallback-user";
+        marker.style.left = `${point.x}%`;
+        marker.style.top = `${point.y}%`;
+        marker.title = "我的位置";
+        marker.innerHTML = `<span>我</span>`;
+        dom.fallbackMap.appendChild(marker);
+      }
+      if (state.selectedPoi) {
+        const point = projectToFallback(state.selectedPoi.lnglat);
+        const marker = document.createElement("button");
+        marker.type = "button";
+        marker.className = "fallback-temp";
+        marker.style.left = `${point.x}%`;
+        marker.style.top = `${point.y}%`;
+        marker.title = "待保存位置";
+        marker.innerHTML = `<span>+</span>`;
+        dom.fallbackMap.appendChild(marker);
+      }
+    }
+
+    function openFallbackInfo(item) {
+      showToast(`${item.name} · ${formatPrice(item.price)} · ${item.rating} 星`, "info");
+    }
+
+    function drawUserMarker() {
+      if (!state.userLocation) return;
+      if (state.fallbackMode) {
+        drawFallbackMarkers();
+        return;
+      }
+      if (!mapState.map || !window.AMap) return;
+      if (mapState.userMarker) mapState.userMarker.setMap(null);
+      mapState.userMarker = new window.AMap.Marker({
+        position: state.userLocation.lnglat,
+        title: "我的位置",
+        offset: new window.AMap.Pixel(-16, -34),
+        content: `<div style="width:34px;height:34px;border-radius:20px 20px 20px 5px;background:#3c8a69;border:2px solid #fff;transform:rotate(-45deg);box-shadow:0 10px 22px rgba(0,0,0,.25);display:grid;place-items:center;"><span style="transform:rotate(45deg);color:#fff;font-weight:900;font-size:12px;">我</span></div>`
+      });
+      mapState.userMarker.setMap(mapState.map);
+    }
+
+    function clearRoutePolyline() {
+      if (mapState.routePolyline && mapState.routePolyline.setMap) mapState.routePolyline.setMap(null);
+      mapState.routePolyline = null;
+    }
+
+    function drawActiveRouteOnMap(route = null) {
+      const activeRoute = route || state.routes[0];
+      if (!activeRoute) return;
+      const points = activeRoute.pointIds.map(getCheckinById).filter(Boolean).map((item) => item.lnglat);
+      if (points.length < 2) return;
+      if (state.fallbackMode) {
+        drawFallbackRoute(points);
+        return;
+      }
+      if (!mapState.map || !window.AMap) return;
+      clearRoutePolyline();
+      mapState.routePolyline = new window.AMap.Polyline({
+        path: points,
+        strokeColor: "#f08b43",
+        strokeWeight: 5,
+        strokeOpacity: 0.85,
+        lineJoin: "round"
+      });
+      mapState.routePolyline.setMap(mapState.map);
+    }
+
+    function drawFallbackRoute(points = null) {
+      if (!state.fallbackMode) return;
+      dom.fallbackMap.querySelectorAll(".fallback-line").forEach((el) => el.remove());
+      const route = points ? { pointIds: [] } : state.routes[0];
+      const routePoints = points || (route ? route.pointIds.map(getCheckinById).filter(Boolean).map((item) => item.lnglat) : []);
+      if (routePoints.length < 2) return;
+      const rect = dom.fallbackMap.getBoundingClientRect();
+      const width = rect.width || 1;
+      const height = rect.height || 1;
+      for (let index = 0; index < routePoints.length - 1; index += 1) {
+        const start = projectToFallback(routePoints[index]);
+        const end = projectToFallback(routePoints[index + 1]);
+        const x1 = (start.x / 100) * width;
+        const y1 = (start.y / 100) * height;
+        const x2 = (end.x / 100) * width;
+        const y2 = (end.y / 100) * height;
+        const line = document.createElement("div");
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        line.className = "fallback-line";
+        line.style.left = `${x1}px`;
+        line.style.top = `${y1}px`;
+        line.style.width = `${length}px`;
+        line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+        dom.fallbackMap.appendChild(line);
+      }
+    }
+
+    // =========================
+    // 7. 定位逻辑
+    // =========================
+    async function locateMe() {
+      const confirmed = await askConfirm({
+        title: "定位到我",
+        message: "浏览器可能会询问是否允许获取位置。\n只有允许后才能定位。\n定位数据仅用于当前页面展示，不上传服务器。",
+        okText: "开始定位",
+        danger: false
+      });
+      if (!confirmed) return;
+
+      if (!navigator.geolocation) {
+        showToast("当前浏览器不支持定位功能，请使用搜索或手动选点。", "error");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lnglat = [position.coords.longitude, position.coords.latitude];
+          state.userLocation = {
+            lnglat,
+            accuracy: position.coords.accuracy,
+            updatedAt: new Date().toISOString()
+          };
+          dom.useCurrentLocationBtn.disabled = false;
+          if (mapState.map) {
+            mapState.map.setZoomAndCenter(16, lnglat);
+            drawUserMarker();
+          }
+          if (state.fallbackMode) drawFallbackMarkers();
+          showToast("已定位到你附近，可在周边添加美食打卡。");
+        },
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            showToast("定位权限被拒绝，你仍然可以通过搜索店铺或地图选点添加打卡。", "error");
+          } else if (error.code === error.TIMEOUT) {
+            showToast("定位超时，请检查浏览器权限或网络环境。", "error");
+          } else {
+            showToast("定位失败，请稍后再试或使用地图选点。", "error");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    }
+
+    function useCurrentLocationForCheckin() {
+      if (!state.userLocation) {
+        showToast("请先点击“定位到我”获取当前位置。", "error");
+        return;
+      }
+      state.selectedPoi = {
+        name: "我的当前位置附近",
+        lnglat: state.userLocation.lnglat,
+        source: "geolocation"
+      };
+      if (!dom.shopInput.value.trim()) dom.shopInput.value = "我的当前位置附近";
+      updateCoordsIndicator();
+      showTempMarker(state.selectedPoi.lnglat);
+      switchTab("add");
+      showToast("已把当前位置作为新打卡位置。");
+    }
+
+    // =========================
+    // 8. 表单与标签逻辑
+    // =========================
+    function renderStars() {
+      dom.starContainer.innerHTML = "";
+      for (let star = 1; star <= 5; star += 1) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `star-btn ${star <= state.currentRating ? "active" : ""}`;
+        button.setAttribute("aria-label", `${star} 星`);
+        button.innerHTML = '<i class="fa-solid fa-star"></i>';
+        button.addEventListener("click", () => {
+          state.currentRating = star;
+          renderStars();
+        });
+        dom.starContainer.appendChild(button);
+      }
+      const ratingText = {
+        1: "1 星，谨慎记录",
+        2: "2 星，有明显遗憾",
+        3: "3 星，可以顺路吃",
+        4: "4 星，愿意再来",
+        5: "5 星，值得专程来吃"
+      };
+      dom.ratingText.textContent = ratingText[state.currentRating];
+    }
+
+    function renderTagCloud() {
+      dom.tagCloud.innerHTML = "";
+      getAllTags().forEach((tag) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `tag-chip ${state.selectedTags.includes(tag) ? "active" : ""}`;
+        button.textContent = tag;
+        button.addEventListener("click", () => toggleSelectedTag(tag));
+        dom.tagCloud.appendChild(button);
+      });
+      renderTagFilter();
+    }
+
+    function toggleSelectedTag(tag) {
+      if (state.selectedTags.includes(tag)) {
+        state.selectedTags = state.selectedTags.filter((item) => item !== tag);
+      } else {
+        state.selectedTags.push(tag);
+      }
+      renderTagCloud();
+    }
+
+    function addCustomTag() {
+      const tag = dom.customTagInput.value.trim().slice(0, 12);
+      if (!tag) {
+        showToast("请输入一个自定义标签。", "error");
+        return;
+      }
+      if (!state.customTags.includes(tag) && !APP_CONFIG.defaultTags.includes(tag)) {
+        state.customTags.push(tag);
+      }
+      if (!state.selectedTags.includes(tag)) state.selectedTags.push(tag);
+      dom.customTagInput.value = "";
+      saveData();
+      renderTagCloud();
+      showToast(`已添加标签：${tag}`);
+    }
+
+    function setType(type) {
+      state.currentType = type === "recommend" ? "recommend" : "personal";
+      dom.typePersonalBtn.classList.toggle("active", state.currentType === "personal");
+      dom.typeRecommendBtn.classList.toggle("active", state.currentType === "recommend");
+    }
+
+    function resetForm(keepPoi = false) {
+      dom.foodForm.reset();
+      dom.dateInput.value = todayString();
+      state.currentType = "personal";
+      state.currentRating = 5;
+      state.selectedTags = [];
+      state.imagesBase64 = [];
+      state.editingId = null;
+      if (!keepPoi) {
+        state.selectedPoi = null;
+        clearTempMarker();
+      }
+      dom.fileInput.value = "";
+      renderPhotoPreview();
+      dom.charCount.textContent = "0/200";
+      dom.submitBtn.innerHTML = '<i class="fa-solid fa-bowl-food"></i>记录这一顿';
+      dom.editingBanner.classList.add("hidden");
+      setType("personal");
+      renderStars();
+      renderTagCloud();
+      updateCoordsIndicator();
+    }
+
+    function loadCheckinIntoForm(item) {
+      state.editingId = item.id;
+      state.selectedPoi = {
+        name: item.name,
+        lnglat: [...item.lnglat],
+        source: "edit"
+      };
+      state.currentType = item.type;
+      state.currentRating = item.rating;
+      state.selectedTags = [...(item.tags || [])];
+      state.imagesBase64 = getCheckinImages(item);
+
+      dom.shopInput.value = item.name;
+      dom.priceInput.value = item.price || "";
+      dom.dateInput.value = item.date || todayString();
+      dom.commentInput.value = item.comment || "";
+      dom.charCount.textContent = `${dom.commentInput.value.length}/200`;
+
+      renderPhotoPreview();
+
+      dom.submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>保存修改';
+      dom.editingBanner.classList.remove("hidden");
+      setType(item.type);
+      renderStars();
+      renderTagCloud();
+      updateCoordsIndicator();
+      showTempMarker(item.lnglat);
+      switchTab("add");
+      showToast("已回填表单，可以继续修改。", "info");
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const shopName = dom.shopInput.value.trim();
+      if (!shopName) {
+        showToast("请输入店铺名称。", "error");
+        return;
+      }
+      if (!state.selectedPoi || !isValidLngLat(state.selectedPoi.lnglat)) {
+        showToast("请先从联想结果、地图选点或当前位置锁定坐标，不能随机生成位置。", "error");
+        setSelectMode(true);
+        return;
+      }
+
+      const payload = normalizeCheckin({
+        id: state.editingId || createId("checkin"),
+        name: shopName,
+        type: state.currentType,
+        rating: state.currentRating,
+        price: dom.priceInput.value,
+        comment: dom.commentInput.value.trim(),
+        image: state.imagesBase64[0] || "",
+        images: state.imagesBase64,
+        lnglat: state.selectedPoi.lnglat,
+        date: dom.dateInput.value || todayString(),
+        tags: state.selectedTags
+      });
+
+      if (state.editingId) {
+        state.checkins = state.checkins.map((item) => item.id === state.editingId ? payload : item);
+        showToast(`已保存修改：${payload.name}`);
+      } else {
+        state.checkins.unshift(payload);
+        showToast(`已记录这一顿：${payload.name}`);
+      }
+
+      state.footprintsEnabled = true;
+      dom.footprintToggle.checked = true;
+      saveData();
+      resetForm();
+      renderAll();
+      updateMarkers();
+      focusOnSpot(payload);
+      switchTab("list");
+    }
+
+    function renderPhotoPreview() {
+      const photos = state.imagesBase64.filter(Boolean);
+      dom.photoPreviewGrid.classList.toggle("show", photos.length > 0);
+      dom.photoPreviewGrid.innerHTML = photos.map((src, index) => `
+        <div class="photo-preview-card">
+          <img src="${escapeAttr(src)}" alt="照片预览 ${index + 1}" />
+          <button type="button" class="photo-remove-btn" data-remove-photo="${index}" aria-label="移除第 ${index + 1} 张照片">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `).join("");
+    }
+
+    function removePhoto(index) {
+      state.imagesBase64.splice(index, 1);
+      renderPhotoPreview();
+      showToast("已移除这张照片。", "info");
+    }
+
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const image = new Image();
+          image.onload = () => {
+            const maxSide = 1200;
+            let { width, height } = image;
+            if (width > height && width > maxSide) {
+              height = Math.round(height * (maxSide / width));
+              width = maxSide;
+            } else if (height >= width && height > maxSide) {
+              width = Math.round(width * (maxSide / height));
+              height = maxSide;
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext("2d");
+            context.drawImage(image, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.78));
+          };
+          image.onerror = () => reject(new Error("图片读取失败"));
+          image.src = event.target.result;
+        };
+        reader.onerror = () => reject(new Error("文件读取失败"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleImageFiles(fileList) {
+      const imageFiles = Array.from(fileList || []).filter((file) => file.type.startsWith("image/"));
+      if (!imageFiles.length) {
+        showToast("请选择图片文件。", "error");
+        return;
+      }
+
+      const remaining = APP_CONFIG.maxPhotosPerCheckin - state.imagesBase64.length;
+      if (remaining <= 0) {
+        showToast(`每条足迹最多保存 ${APP_CONFIG.maxPhotosPerCheckin} 张照片。`, "error");
+        return;
+      }
+
+      const filesToUse = imageFiles.slice(0, remaining);
+      try {
+        const compressed = await Promise.all(filesToUse.map(compressImageFile));
+        state.imagesBase64 = [...state.imagesBase64, ...compressed].slice(0, APP_CONFIG.maxPhotosPerCheckin);
+        renderPhotoPreview();
+        dom.fileInput.value = "";
+        const clipped = imageFiles.length > filesToUse.length;
+        showToast(`已添加 ${compressed.length} 张照片${clipped ? "，多出的照片未保存" : ""}。`);
+      } catch (error) {
+        showToast("部分图片读取失败，请换图再试。", "error");
+      }
+    }
+
+    // =========================
+    // 9. 足迹列表
+    // =========================
+    function getFilteredCheckins() {
+      return state.checkins.filter((item) => {
+        const typeMatch = state.filterType === "all" || item.type === state.filterType;
+        const tagMatch = state.filterTag === "all" || (item.tags || []).includes(state.filterTag);
+        return typeMatch && tagMatch;
+      });
+    }
+
+    function renderTagFilter() {
+      const current = state.filterTag;
+      dom.tagFilterSelect.innerHTML = '<option value="all">全部标签</option>';
+      getAllTags().forEach((tag) => {
+        const option = document.createElement("option");
+        option.value = tag;
+        option.textContent = tag;
+        dom.tagFilterSelect.appendChild(option);
+      });
+      dom.tagFilterSelect.value = getAllTags().includes(current) ? current : "all";
+    }
+
+    function renderList() {
+      const filtered = getFilteredCheckins();
+      dom.listContainer.innerHTML = "";
+      dom.emptyList.classList.toggle("hidden", filtered.length > 0);
+
+      filtered.forEach((item) => {
+        const photos = getCheckinImages(item);
+        const card = document.createElement("article");
+        card.className = "food-card";
+        card.innerHTML = `
+          ${photos.length ? `
+            <div class="food-media" style="position: relative;">
+              <img src="${escapeAttr(photos[0])}" alt="${escapeAttr(item.name)} 的照片" />
+              ${photos.length > 1 ? `<span class="photo-count-badge">${photos.length} 张照片</span>` : ""}
+            </div>
+          ` : ""}
+          <div class="card-head">
+            <div>
+              <h3>${escapeHtml(item.name)}</h3>
+              <div class="meta-row">
+                <span class="badge ${item.type}">${item.type === "personal" ? "个人打卡" : "主题推荐"}</span>
+                <span>${"★".repeat(item.rating)}${"☆".repeat(5 - item.rating)}</span>
+                <span>${formatPrice(item.price)}</span>
+                <span>${escapeHtml(item.date)}</span>
+              </div>
+            </div>
+          </div>
+          ${item.comment ? `<p class="comment">${escapeHtml(item.comment)}</p>` : ""}
+          <div class="tag-cloud" style="margin-top: 10px;">${(item.tags || []).map((tag) => `<span class="tag-chip active">${escapeHtml(tag)}</span>`).join("")}</div>
+          <div class="button-row" style="margin-top: 12px;">
+            <button type="button" class="btn small primary" data-action="focus" data-id="${escapeAttr(item.id)}"><i class="fa-solid fa-location-crosshairs"></i>查看位置</button>
+            <button type="button" class="btn small" data-action="edit" data-id="${escapeAttr(item.id)}"><i class="fa-solid fa-pen"></i>编辑</button>
+            <button type="button" class="btn small" data-action="route" data-id="${escapeAttr(item.id)}"><i class="fa-solid fa-route"></i>加入路线</button>
+            <button type="button" class="btn small danger" data-action="delete" data-id="${escapeAttr(item.id)}"><i class="fa-solid fa-trash"></i>删除</button>
+          </div>
+        `;
+        dom.listContainer.appendChild(card);
+      });
+    }
+
+    async function deleteCheckin(id) {
+      const item = getCheckinById(id);
+      if (!item) return;
+      const confirmed = await askConfirm({
+        title: "删除打卡点",
+        message: `确定删除「${item.name}」吗？\n这会同时从路线中移除该点位。`,
+        okText: "删除",
+        danger: true
+      });
+      if (!confirmed) return;
+      state.checkins = state.checkins.filter((checkin) => checkin.id !== id);
+      state.routes = state.routes
+        .map((route) => normalizeRoute({ ...route, pointIds: route.pointIds.filter((pointId) => pointId !== id) }))
+        .filter((route) => route.pointIds.length >= APP_CONFIG.minRouteStops);
+      state.routeDraftIds = state.routeDraftIds.filter((pointId) => pointId !== id);
+      saveData();
+      renderAll();
+      updateMarkers();
+      showToast("打卡点已删除。");
+    }
+
+    function addPointToRoute(id) {
+      if (!getCheckinById(id)) return;
+      if (state.routeDraftIds.includes(id)) {
+        showToast("这个点已经在路线草稿里了。", "info");
+        return;
+      }
+      if (state.routeDraftIds.length >= APP_CONFIG.maxRouteStops) {
+        showToast("一条路线最多选择 5 个点。", "error");
+        return;
+      }
+      state.routeDraftIds.push(id);
+      renderRoutePicker();
+      renderRouteDraft();
+      switchTab("routes");
+      showToast("已加入路线草稿。");
+    }
+
+    // =========================
+    // 10. 推荐逻辑
+    // =========================
+    function getScenarioTags(scenario, taste) {
+      const map = {
+        "一个人吃": ["小吃", "性价比高", "学生党"],
+        "朋友聚餐": ["聚餐", "海鲜", "本地推荐"],
+        "情侣约会": ["约会", "咖啡", "甜品", "拍照出片"],
+        "拍照打卡": ["拍照出片", "咖啡", "甜品", "沙坡尾"],
+        "赶时间": ["小吃", "中山路", "厦大周边"],
+        "省钱吃饱": ["学生党", "性价比高", "小吃"],
+        "深夜夜宵": ["夜宵", "小吃", "聚餐"],
+        "游客第一次来厦门": ["游客友好", "本地推荐", "八市", "中山路"]
+      };
+      const tasteMap = {
+        "咖啡甜品": ["咖啡", "甜品"],
+        "本地特色": ["本地推荐", "沙茶面", "八市"],
+        "正餐": ["聚餐", "海鲜", "本地推荐"]
+      };
+      return uniqueStrings([...(map[scenario] || []), ...(tasteMap[taste] || [taste])]);
+    }
+
+    function scoreRecommendation(item, options) {
+      const desiredTags = getScenarioTags(options.scenario, options.taste);
+      const itemTags = item.tags || [];
+      const tagScore = desiredTags.filter((tag) => itemTags.includes(tag)).length * 12;
+      const budget = Number(options.budget);
+      const price = Number(item.price) || 0;
+      let budgetScore = 0;
+      if (budget === 30) budgetScore = price > 0 && price <= 30 ? 18 : -8;
+      if (budget === 60) budgetScore = price >= 30 && price <= 60 ? 18 : Math.max(0, 10 - Math.abs(price - 45) / 6);
+      if (budget === 100) budgetScore = price >= 60 && price <= 100 ? 18 : Math.max(0, 10 - Math.abs(price - 80) / 8);
+      if (budget === 9999) budgetScore = price >= 100 ? 18 : Math.max(2, price / 20);
+      const ratingScore = item.rating * 7;
+      const recentScore = item.type === "personal" ? 4 : 2;
+      return tagScore + budgetScore + ratingScore + recentScore;
+    }
+
+    function recommendFood(next = false) {
+      if (!state.checkins.length) {
+        dom.recommendResult.innerHTML = '<div class="empty-state"><strong>还没有可推荐的足迹</strong><span>先添加几家店，推荐才会更像你。</span></div>';
+        return;
+      }
+      const options = {
+        scenario: dom.scenarioSelect.value,
+        budget: dom.budgetSelect.value,
+        taste: dom.tasteSelect.value
+      };
+      if (!next || !state.lastRecommendationPool.length) {
+        state.recommendationIndex = 0;
+        state.lastRecommendationPool = [...state.checkins]
+          .map((item) => ({ item, score: scoreRecommendation(item, options) }))
+          .sort((a, b) => b.score - a.score);
+      } else {
+        state.recommendationIndex = (state.recommendationIndex + 1) % state.lastRecommendationPool.length;
+      }
+      const result = state.lastRecommendationPool[state.recommendationIndex];
+      renderRecommendation(result.item, options, result.score);
+    }
+
+    function renderRecommendation(item, options, score) {
+      const desiredTags = getScenarioTags(options.scenario, options.taste);
+      const matched = desiredTags.filter((tag) => (item.tags || []).includes(tag));
+      const reasons = [
+        item.rating >= 4 ? "评分高" : "",
+        matched.length ? `标签匹配：${matched.join("、")}` : "用高评分结果兜底",
+        item.price ? `人均 ${formatPrice(item.price)}，符合预算参考` : "",
+        `适合「${options.scenario}」`
+      ].filter(Boolean);
+      dom.recommendResult.innerHTML = `
+        <article class="recommend-card">
+          <div class="section-title">
+            <div>
+              <h2>今晚推荐：${escapeHtml(item.name)}</h2>
+              <p>推荐分 ${Math.round(score)} · ${reasons.map(escapeHtml).join(" / ")}</p>
+            </div>
+          </div>
+          ${item.comment ? `<p class="comment">${escapeHtml(item.comment)}</p>` : ""}
+          <div class="tag-cloud" style="margin: 10px 0;">${(item.tags || []).map((tag) => `<span class="tag-chip active">${escapeHtml(tag)}</span>`).join("")}</div>
+          <div class="button-row">
+            <button type="button" class="btn small primary" data-recommend-action="focus" data-id="${escapeAttr(item.id)}"><i class="fa-solid fa-location-crosshairs"></i>查看位置</button>
+            <button type="button" class="btn small" data-recommend-action="route" data-id="${escapeAttr(item.id)}"><i class="fa-solid fa-route"></i>加入路线</button>
+            <button type="button" class="btn small" data-recommend-action="next"><i class="fa-solid fa-shuffle"></i>换一家</button>
+          </div>
+        </article>
+      `;
+    }
+
+    // =========================
+    // 11. 路线逻辑
+    // =========================
+    function renderRoutePicker() {
+      dom.routePicker.innerHTML = "";
+      if (!state.checkins.length) {
+        dom.routePicker.innerHTML = '<div class="empty-state"><strong>暂无可选点位</strong><span>添加打卡后就能生成路线。</span></div>';
+        return;
+      }
+      state.checkins.forEach((item) => {
+        const label = document.createElement("label");
+        label.className = "route-option";
+        label.innerHTML = `
+          <input type="checkbox" value="${escapeAttr(item.id)}" ${state.routeDraftIds.includes(item.id) ? "checked" : ""} />
+          <span>${escapeHtml(item.name)} · ${formatPrice(item.price)} · ${item.rating} 星</span>
+        `;
+        label.querySelector("input").addEventListener("change", (event) => {
+          const id = event.target.value;
+          if (event.target.checked) {
+            if (state.routeDraftIds.length >= APP_CONFIG.maxRouteStops) {
+              event.target.checked = false;
+              showToast("一条路线最多选择 5 个点。", "error");
+              return;
+            }
+            state.routeDraftIds.push(id);
+          } else {
+            state.routeDraftIds = state.routeDraftIds.filter((pointId) => pointId !== id);
+          }
+          renderRouteDraft();
+        });
+        dom.routePicker.appendChild(label);
+      });
+    }
+
+    function autoGenerateRoute() {
+      const preset = dom.routePresetSelect.value;
+      const sorted = [...state.checkins].sort((a, b) => {
+        if (preset === "budget") return (a.price || 9999) - (b.price || 9999);
+        if (preset === "rating") return b.rating - a.rating;
+        const tags = {
+          xmu: ["厦大周边", "学生党", "性价比高"],
+          bashi: ["八市", "本地推荐", "小吃"],
+          shapowei: ["沙坡尾", "咖啡", "甜品", "拍照出片"],
+          night: ["夜宵", "小吃", "聚餐"]
+        }[preset] || [];
+        const score = (item) => tags.filter((tag) => (item.tags || []).includes(tag)).length * 10 + item.rating;
+        return score(b) - score(a);
+      });
+      state.routeDraftIds = sorted.slice(0, APP_CONFIG.maxRouteStops).map((item) => item.id);
+      if (state.routeDraftIds.length < APP_CONFIG.minRouteStops) {
+        showToast("至少需要 2 个打卡点才能生成路线。", "error");
+        return;
+      }
+      const presetName = {
+        budget: "预算友好路线",
+        rating: "高分探店路线",
+        xmu: "厦大周边学生党路线",
+        bashi: "八市烟火路线",
+        shapowei: "沙坡尾咖啡甜品路线",
+        night: "深夜夜宵路线"
+      }[preset];
+      dom.routeNameInput.value = presetName;
+      renderRoutePicker();
+      renderRouteDraft();
+      showToast("已按偏好生成路线草稿。");
+    }
+
+    function buildRouteFromDraft() {
+      const points = state.routeDraftIds.map(getCheckinById).filter(Boolean);
+      if (points.length < APP_CONFIG.minRouteStops) {
+        showToast("请选择至少 2 个点位。", "error");
+        return null;
+      }
+      if (points.length > APP_CONFIG.maxRouteStops) {
+        showToast("一条路线最多 5 个点位。", "error");
+        return null;
+      }
+      const tags = Object.entries(getTagCounts(points))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([tag]) => tag);
+      const name = dom.routeNameInput.value.trim()
+        || `${tags[0] || "厦门"} ${points.length} 站美食路线`;
+      const averagePrice = Math.round(points.reduce((sum, item) => sum + (Number(item.price) || 0), 0) / points.length);
+      const averageRating = (points.reduce((sum, item) => sum + item.rating, 0) / points.length).toFixed(1);
+      return normalizeRoute({
+        id: createId("route"),
+        name,
+        pointIds: points.map((item) => item.id),
+        tags,
+        note: `预计人均 ${formatPrice(averagePrice)}，平均评分 ${averageRating}。适合把 ${tags.join("、") || "厦门味道"} 串成一段城市记忆。`,
+        createdAt: todayString()
+      });
+    }
+
+    function renderRouteDraft() {
+      const points = state.routeDraftIds.map(getCheckinById).filter(Boolean);
+      if (!points.length) {
+        dom.routeDraft.innerHTML = "";
+        return;
+      }
+      const averagePrice = Math.round(points.reduce((sum, item) => sum + (Number(item.price) || 0), 0) / points.length);
+      const averageRating = (points.reduce((sum, item) => sum + item.rating, 0) / points.length).toFixed(1);
+      const tags = Object.entries(getTagCounts(points)).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tag]) => tag);
+      dom.routeDraft.innerHTML = `
+        <article class="route-card">
+          <div class="section-title">
+            <div>
+              <h2>路线草稿 · ${points.length} 站</h2>
+              <p>预计人均 ${formatPrice(averagePrice)} · 平均评分 ${averageRating}</p>
+            </div>
+          </div>
+          <div class="stack">
+            ${points.map((item, index) => `<button type="button" class="btn ghost" data-route-focus="${escapeAttr(item.id)}">第 ${index + 1} 站：${escapeHtml(item.name)}</button>`).join("")}
+          </div>
+          <div class="tag-cloud" style="margin-top: 12px;">${tags.map((tag) => `<span class="tag-chip active">${escapeHtml(tag)}</span>`).join("")}</div>
+        </article>
+      `;
+      drawActiveRoutePreview(points);
+    }
+
+    function drawActiveRoutePreview(points) {
+      const lnglats = points.map((item) => item.lnglat);
+      if (state.fallbackMode) {
+        drawFallbackRoute(lnglats);
+        return;
+      }
+      if (!mapState.map || !window.AMap || lnglats.length < 2) return;
+      clearRoutePolyline();
+      mapState.routePolyline = new window.AMap.Polyline({
+        path: lnglats,
+        strokeColor: "#f08b43",
+        strokeWeight: 5,
+        strokeOpacity: 0.86,
+        lineJoin: "round"
+      });
+      mapState.routePolyline.setMap(mapState.map);
+    }
+
+    function saveRouteFromDraft() {
+      const route = buildRouteFromDraft();
+      if (!route) return;
+      state.routes.unshift(route);
+      state.routeDraftIds = [];
+      dom.routeNameInput.value = "";
+      saveData();
+      renderAll();
+      drawActiveRouteOnMap(route);
+      showToast("路线已保存。");
+    }
+
+    async function deleteRoute(id) {
+      const route = state.routes.find((item) => item.id === id);
+      if (!route) return;
+      const confirmed = await askConfirm({
+        title: "删除路线",
+        message: `确定删除「${route.name}」吗？打卡点不会被删除。`,
+        okText: "删除",
+        danger: true
+      });
+      if (!confirmed) return;
+      state.routes = state.routes.filter((item) => item.id !== id);
+      saveData();
+      renderAll();
+      updateMarkers();
+      showToast("路线已删除。");
+    }
+
+    function renderRoutes() {
+      dom.routesContainer.innerHTML = "";
+      dom.emptyRoutes.classList.toggle("hidden", state.routes.length > 0);
+      state.routes.forEach((route) => {
+        const points = route.pointIds.map(getCheckinById).filter(Boolean);
+        const averagePrice = points.length ? Math.round(points.reduce((sum, item) => sum + (Number(item.price) || 0), 0) / points.length) : 0;
+        const averageRating = points.length ? (points.reduce((sum, item) => sum + item.rating, 0) / points.length).toFixed(1) : "0";
+        const card = document.createElement("article");
+        card.className = "route-card";
+        card.innerHTML = `
+          <div class="section-title">
+            <div>
+              <h2>${escapeHtml(route.name)}</h2>
+              <p>${points.length} 站 · 预计人均 ${formatPrice(averagePrice)} · 平均评分 ${averageRating}</p>
+            </div>
+          </div>
+          <div class="stack">
+            ${points.map((item, index) => `<button type="button" class="btn ghost" data-route-focus="${escapeAttr(item.id)}">第 ${index + 1} 站：${escapeHtml(item.name)}</button>`).join("")}
+          </div>
+          <p class="comment">${escapeHtml(route.note)}</p>
+          <div class="tag-cloud" style="margin-top: 10px;">${(route.tags || []).map((tag) => `<span class="tag-chip active">${escapeHtml(tag)}</span>`).join("")}</div>
+          <div class="button-row" style="margin-top: 12px;">
+            <button type="button" class="btn small primary" data-route-action="draw" data-id="${escapeAttr(route.id)}"><i class="fa-solid fa-route"></i>显示路线</button>
+            <button type="button" class="btn small danger" data-route-action="delete" data-id="${escapeAttr(route.id)}"><i class="fa-solid fa-trash"></i>删除</button>
+          </div>
+        `;
+        dom.routesContainer.appendChild(card);
+      });
+    }
+
+    // =========================
+    // 12. Dashboard
+    // =========================
+    function getStats(data = state.checkins) {
+      const total = data.length;
+      const fiveStars = data.filter((item) => item.rating === 5).length;
+      const avgPrice = total ? Math.round(data.reduce((sum, item) => sum + (Number(item.price) || 0), 0) / total) : 0;
+      const best = [...data].sort((a, b) => b.rating - a.rating || (b.price || 0) - (a.price || 0))[0];
+      const personal = data.filter((item) => item.type === "personal").length;
+      const recommend = data.filter((item) => item.type === "recommend").length;
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const monthCount = data.filter((item) => String(item.date || "").startsWith(currentMonth)).length;
+      const totalSpend = data.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+      return {
+        total,
+        fiveStars,
+        avgPrice,
+        bestName: best ? best.name : "暂无",
+        topTag: getTopTag(data),
+        personal,
+        recommend,
+        monthCount,
+        totalSpend
+      };
+    }
+
+    function renderDashboard() {
+      const stats = getStats();
+      const metrics = [
+        ["已打卡总数", `${stats.total} 家`],
+        ["五星店铺", `${stats.fiveStars} 家`],
+        ["平均人均", stats.avgPrice ? `¥${stats.avgPrice}` : "暂无"],
+        ["最高评分店铺", stats.bestName],
+        ["最常用标签", stats.topTag],
+        ["个人 / 推荐", `${stats.personal} / ${stats.recommend}`],
+        ["本月打卡", `${stats.monthCount} 家`],
+        ["总消费估算", stats.totalSpend ? `¥${Math.round(stats.totalSpend)}` : "暂无"]
+      ];
+      dom.statsGrid.innerHTML = metrics.map(([label, value]) => `
+        <div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+      `).join("");
+
+      renderTagChart();
+      renderTypeChart(stats);
+      renderTimelineChart();
+    }
+
+    function renderTagChart() {
+      const entries = Object.entries(getTagCounts()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      if (!entries.length) {
+        dom.tagChart.innerHTML = '<div class="empty-state"><strong>暂无标签数据</strong><span>添加标签后会看到分布。</span></div>';
+        return;
+      }
+      const max = Math.max(...entries.map(([, count]) => count));
+      dom.tagChart.innerHTML = entries.map(([tag, count]) => `
+        <div class="bar-row">
+          <span>${escapeHtml(tag)}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.max(8, (count / max) * 100)}%"></div></div>
+          <span>${count}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderTypeChart(stats) {
+      const total = Math.max(1, stats.total);
+      const personalDeg = (stats.personal / total) * 360;
+      dom.typeChart.innerHTML = `
+        <div class="ratio-ring" style="--personal-deg:${personalDeg}deg;"><strong>${Math.round((stats.personal / total) * 100)}%</strong></div>
+        <div class="meta-row" style="justify-content:center;">
+          <span class="badge personal">个人打卡 ${stats.personal}</span>
+          <span class="badge recommend">主题推荐 ${stats.recommend}</span>
+        </div>
+      `;
+    }
+
+    function renderTimelineChart() {
+      const months = [];
+      const now = new Date();
+      for (let offset = 5; offset >= 0; offset -= 1) {
+        const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+        months.push(date.toISOString().slice(0, 7));
+      }
+      const counts = months.map((month) => state.checkins.filter((item) => String(item.date || "").startsWith(month)).length);
+      const max = Math.max(1, ...counts);
+      dom.timelineChart.innerHTML = months.map((month, index) => `
+        <div class="timeline-col">
+          <div class="timeline-bar" title="${escapeAttr(month)}：${counts[index]} 次" style="height:${Math.max(4, (counts[index] / max) * 86)}px"></div>
+          <span>${month.slice(5)}</span>
+        </div>
+      `).join("");
+    }
+
+    // =========================
+    // 13. 人格卡与分享卡
+    // =========================
+    function generatePersona() {
+      const data = state.checkins.length >= 3 ? state.checkins : mockData.map(normalizeCheckin);
+      const counts = getTagCounts(data);
+      const count = (tag) => counts[tag] || 0;
+      let persona = "潮流探店型";
+      let copy = "你总能把一顿饭吃成城市灵感，跟着你走，厦门会多出几条新路线。";
+
+      if (count("夜宵") + count("小吃") >= 4) {
+        persona = "深夜烟火型";
+        copy = "你收藏的不是店名，是夜色里热腾腾的生活感。";
+      }
+      if (count("咖啡") + count("甜品") + count("拍照出片") >= 4) {
+        persona = "城市漫游型";
+        copy = "你擅长在海风、街角和甜味里，找到适合慢下来的坐标。";
+      }
+      if (count("学生党") + count("性价比高") >= 3) {
+        persona = "学生省钱型";
+        copy = "你知道哪里的快乐不贵，且很适合下课后立刻出发。";
+      }
+      if (count("海鲜") + count("本地推荐") + count("八市") >= 4) {
+        persona = "本地老饕型";
+        copy = "你更相信巷口热气和熟客队伍，懂得真正的厦门味。";
+      }
+      if (count("避坑") >= 2) {
+        persona = "理性避雷型";
+        copy = "你认真记录每一次体验，帮朋友少走弯路，多吃好饭。";
+      }
+
+      const topArea = ["厦大周边", "八市", "沙坡尾", "中山路"].sort((a, b) => count(b) - count(a))[0] || "厦门街巷";
+      const topTags = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([tag]) => tag);
+      const representative = [...data].sort((a, b) => b.rating - a.rating)[0];
+      const text = [
+        `你的厦门美食人格：${persona}`,
+        `你最常出没：${topArea}`,
+        `你的口味关键词：${topTags.join("、") || "厦门味道"}`,
+        `你的代表店铺：${representative ? representative.name : "暂无"}`,
+        `一句人格文案：${copy}`
+      ].join("\n");
+      state.lastPersonaText = text;
+      dom.personaCard.classList.remove("hidden");
+      dom.copyPersonaBtn.classList.remove("hidden");
+      dom.personaCard.innerHTML = `
+        <h3>${escapeHtml(persona)}</h3>
+        <p>你最常出没：${escapeHtml(topArea)}</p>
+        <p>口味关键词：${escapeHtml(topTags.join(" / ") || "厦门味道")}</p>
+        <p>代表店铺：${escapeHtml(representative ? representative.name : "暂无")}</p>
+        <p>${escapeHtml(copy)}</p>
+        ${state.checkins.length < 3 ? "<p>提示：当前数据不足 3 条，已使用示例数据辅助生成。</p>" : ""}
+      `;
+      return { persona, text };
+    }
+
+    function generateShareCard() {
+      const persona = generatePersona();
+      const stats = getStats();
+      const text = [
+        "鹭味足迹",
+        `已打卡 ${stats.total} 家，五星店铺 ${stats.fiveStars} 家`,
+        `平均人均 ${stats.avgPrice ? `¥${stats.avgPrice}` : "暂无"}，最爱标签：${stats.topTag}`,
+        `最高评分店铺：${stats.bestName}`,
+        persona.text.split("\n")[0],
+        "把每一顿饭，标记成一段厦门记忆。"
+      ].join("\n");
+      state.lastShareText = text;
+      dom.shareCard.classList.remove("hidden");
+      dom.copyShareBtn.classList.remove("hidden");
+      dom.shareCard.innerHTML = `
+        <h3>鹭味足迹</h3>
+        <p>已打卡 ${escapeHtml(stats.total)} 家 · 五星店铺 ${escapeHtml(stats.fiveStars)} 家 · 平均人均 ${escapeHtml(stats.avgPrice ? `¥${stats.avgPrice}` : "暂无")}</p>
+        <p>最爱标签：${escapeHtml(stats.topTag)}<br />最高评分店铺：${escapeHtml(stats.bestName)}</p>
+        <p>${escapeHtml(persona.text.split("\n")[0])}</p>
+        <p>把每一顿饭，标记成一段厦门记忆。</p>
+      `;
+    }
+
+    // =========================
+    // 14. 渲染总控
+    // =========================
+    function switchTab(tab) {
+      state.activeTab = tab;
+      document.querySelectorAll(".tab-btn").forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === tab);
+      });
+      document.querySelectorAll(".tab-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === `tab-${tab}`);
+      });
+      if (tab === "list") renderList();
+      if (tab === "routes") {
+        renderRoutePicker();
+        renderRouteDraft();
+        renderRoutes();
+      }
+      if (tab === "dashboard") renderDashboard();
+    }
+
+    function renderAll() {
+      dom.statCount.textContent = String(state.checkins.length);
+      dom.footprintToggle.checked = state.footprintsEnabled;
+      renderStars();
+      renderTagCloud();
+      renderList();
+      renderRoutePicker();
+      renderRouteDraft();
+      renderRoutes();
+      renderDashboard();
+    }
+
+    // =========================
+    // 15. 事件绑定
+    // =========================
+    function bindEvents() {
+      document.querySelectorAll(".tab-btn").forEach((button) => {
+        button.addEventListener("click", () => switchTab(button.dataset.tab));
+      });
+
+      dom.sidebarToggleBtn.addEventListener("click", () => {
+        const collapsed = dom.sidebarWrap.classList.toggle("collapsed");
+        dom.toggleIcon.className = collapsed ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+        setTimeout(() => {
+          if (mapState.map) mapState.map.resize();
+          if (state.fallbackMode) drawFallbackRoute();
+        }, 260);
+      });
+
+      dom.footprintToggle.addEventListener("change", (event) => {
+        state.footprintsEnabled = event.target.checked;
+        saveData();
+        updateMarkers();
+        showToast(state.footprintsEnabled ? "足迹图层已显示。" : "足迹图层已隐藏。", "info");
+      });
+
+      dom.mapSelectBtn.addEventListener("click", () => setSelectMode(!state.selectMode));
+      dom.selectOnMapBtn.addEventListener("click", () => setSelectMode(!state.selectMode));
+      dom.locateMeBtn.addEventListener("click", locateMe);
+      dom.locateMeInlineBtn.addEventListener("click", locateMe);
+      dom.useCurrentLocationBtn.addEventListener("click", useCurrentLocationForCheckin);
+      dom.resetViewBtn.addEventListener("click", resetMapView);
+      dom.clearLockBtn.addEventListener("click", clearSelectedPoi);
+
+      dom.typePersonalBtn.addEventListener("click", () => setType("personal"));
+      dom.typeRecommendBtn.addEventListener("click", () => setType("recommend"));
+      dom.addCustomTagBtn.addEventListener("click", addCustomTag);
+      dom.customTagInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addCustomTag();
+        }
+      });
+
+      dom.commentInput.addEventListener("input", () => {
+        dom.charCount.textContent = `${dom.commentInput.value.length}/200`;
+      });
+
+      dom.foodForm.addEventListener("submit", handleFormSubmit);
+      dom.resetFormBtn.addEventListener("click", () => resetForm());
+      dom.cancelEditBtn.addEventListener("click", () => resetForm());
+
+      dom.fileInput.addEventListener("change", (event) => handleImageFiles(event.target.files));
+      dom.photoPreviewGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove-photo]");
+        if (!button) return;
+        removePhoto(Number(button.dataset.removePhoto));
+      });
+      dom.dropzone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dom.dropzone.classList.add("dragging");
+      });
+      dom.dropzone.addEventListener("dragleave", () => dom.dropzone.classList.remove("dragging"));
+      dom.dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dom.dropzone.classList.remove("dragging");
+        handleImageFiles(event.dataTransfer.files);
+      });
+
+      document.querySelectorAll("[data-filter-type]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const type = button.dataset.filterType;
+          state.filterType = type === "none" ? "all" : type;
+          if (type === "none") state.filterTag = "all";
+          document.querySelectorAll("[data-filter-type]").forEach((btn) => btn.classList.remove("active"));
+          const activeButton = document.querySelector(`[data-filter-type="${state.filterType}"]`) || document.querySelector('[data-filter-type="all"]');
+          activeButton.classList.add("active");
+          dom.tagFilterSelect.value = state.filterTag;
+          renderList();
+        });
+      });
+
+      dom.tagFilterSelect.addEventListener("change", () => {
+        state.filterTag = dom.tagFilterSelect.value;
+        renderList();
+      });
+
+      dom.listContainer.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+        const id = button.dataset.id;
+        const item = getCheckinById(id);
+        if (button.dataset.action === "focus" && item) focusOnSpot(item);
+        if (button.dataset.action === "edit" && item) loadCheckinIntoForm(item);
+        if (button.dataset.action === "route") addPointToRoute(id);
+        if (button.dataset.action === "delete") deleteCheckin(id);
+      });
+
+      dom.recommendBtn.addEventListener("click", () => recommendFood(false));
+      dom.recommendResult.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-recommend-action]");
+        if (!button) return;
+        if (button.dataset.recommendAction === "next") {
+          recommendFood(true);
+          return;
+        }
+        const item = getCheckinById(button.dataset.id);
+        if (!item) return;
+        if (button.dataset.recommendAction === "focus") focusOnSpot(item);
+        if (button.dataset.recommendAction === "route") addPointToRoute(item.id);
+      });
+
+      dom.autoRouteBtn.addEventListener("click", autoGenerateRoute);
+      dom.generateRouteBtn.addEventListener("click", saveRouteFromDraft);
+      dom.clearRouteDraftBtn.addEventListener("click", () => {
+        state.routeDraftIds = [];
+        dom.routeNameInput.value = "";
+        renderRoutePicker();
+        renderRouteDraft();
+        updateMarkers();
+      });
+
+      document.addEventListener("click", (event) => {
+        const focusButton = event.target.closest("[data-route-focus]");
+        if (focusButton) {
+          const item = getCheckinById(focusButton.dataset.routeFocus);
+          if (item) focusOnSpot(item);
+        }
+      });
+
+      dom.routesContainer.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-route-action]");
+        if (!button) return;
+        const route = state.routes.find((item) => item.id === button.dataset.id);
+        if (button.dataset.routeAction === "draw" && route) {
+          drawActiveRouteOnMap(route);
+          const first = route.pointIds.map(getCheckinById).filter(Boolean)[0];
+          if (first) focusOnSpot(first);
+          showToast("路线已显示在地图上。");
+        }
+        if (button.dataset.routeAction === "delete") deleteRoute(button.dataset.id);
+      });
+
+      dom.exportJsonBtn.addEventListener("click", exportData);
+      dom.importJsonBtn.addEventListener("click", () => dom.importFileInput.click());
+      dom.importFileInput.addEventListener("change", (event) => importDataFile(event.target.files[0]));
+      dom.restoreSampleBtn.addEventListener("click", async () => {
+        const confirmed = await askConfirm({
+          title: "恢复示例数据",
+          message: "这会用示例数据覆盖当前足迹和路线。确认继续吗？",
+          okText: "恢复",
+          danger: false
+        });
+        if (!confirmed) return;
+        state.checkins = mockData.map(normalizeCheckin);
+        state.routes = [];
+        state.routeDraftIds = [];
+        saveData();
+        renderAll();
+        updateMarkers();
+        showToast("示例数据已恢复。");
+      });
+      dom.clearAllBtn.addEventListener("click", async () => {
+        const confirmed = await askConfirm({
+          title: "清空全部数据",
+          message: "这会删除所有打卡点和路线。本操作只影响本地浏览器数据，但不可撤销。\n建议先导出 JSON 备份。",
+          okText: "清空",
+          danger: true
+        });
+        if (!confirmed) return;
+        state.checkins = [];
+        state.routes = [];
+        state.routeDraftIds = [];
+        saveData();
+        renderAll();
+        updateMarkers();
+        showToast("全部数据已清空。");
+      });
+
+      dom.generatePersonaBtn.addEventListener("click", generatePersona);
+      dom.copyPersonaBtn.addEventListener("click", () => copyText(state.lastPersonaText || "", "人格文案已复制。"));
+      dom.generateShareBtn.addEventListener("click", generateShareCard);
+      dom.copyShareBtn.addEventListener("click", () => copyText(state.lastShareText || "", "分享文案已复制。"));
+
+      window.addEventListener("resize", () => {
+        if (mapState.map) mapState.map.resize();
+        if (state.fallbackMode) drawFallbackRoute();
+      });
+    }
+
+    // =========================
+    // 16. 初始化
+    // =========================
+    function init() {
+      cacheDom();
+      loadData();
+      dom.dateInput.value = todayString();
+      dom.footprintToggle.checked = state.footprintsEnabled;
+      bindEvents();
+      resetForm();
+      renderAll();
+      initMap();
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
